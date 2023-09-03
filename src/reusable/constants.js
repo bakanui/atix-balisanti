@@ -1,0 +1,1 @@
+export const apiUrl = 'https://maiharta.com/api-simpel-dev/api/'
