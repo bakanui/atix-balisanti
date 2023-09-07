@@ -16,6 +16,7 @@ import logoBPD from './../../assets/bank-bpd-bali-logo-687C6FCAC4-seeklogo.com.p
 import logoQris from './../../assets/qris.png';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import { sha256 } from 'js-sha256';
+import XMLParser from 'react-xml-parser';
 const Order = () => {
     
     const { id_jadwal, kapasitas, date_book } = useParams();
@@ -50,6 +51,8 @@ const Order = () => {
     const [ultimate_post, setUltimatePost] = useState()
     const [total_pay, setTotalPay] = useState(0)
     const [copy, setCopy] = useState(false)
+
+    const [no_va, setNoVA] = useState(0);
     
     const postJadwal = 
           {
@@ -249,8 +252,8 @@ const Order = () => {
                 id_tujuan: form.get('id_tujuan'),
                 id_tiket: data_tiket[1],
                 id_jadwal: id_jadwal,
-                jenis_kelamin:res.jenis_kelamin,
-                alamat:form.get('alamat'),
+                jenis_kelamin: res.jenis_kelamin,
+                alamat: form.get('alamat'),
                 status_verif:0,
                 harga_tiket: harga,
                 catatan: res.catatan,
@@ -285,7 +288,15 @@ const Order = () => {
           'Accept': "application/json" 
         },
       }
-
+    
+    function kepentinganPenumpangText(id_tujuan){
+        jenisTujuan.map((data,index) => {
+            if (id_tujuan === data.id_tujuan){
+                return data.nama_tujuan
+            }
+        })
+    }
+    
     const pushToPayment = () => {
         setModal(false)
         // console.log(ultimate_post)
@@ -313,7 +324,6 @@ const Order = () => {
                                 console.log(data_generate)
                                 axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/generateQrisPost',data_generate)
                                 .then((rest) => {
-                                console.log(rest.data.expiredDate)
                                         if(rest.status == 200){
                                             localStorage.setItem('qrValue', JSON.stringify(rest.data.qrValue));
                                             localStorage.setItem('billNumber', JSON.stringify(rest.data.billNumber));
@@ -368,19 +378,66 @@ const Order = () => {
                                     email: res.data[last - 1].invoice.email
                                 }
                                 console.log(data_generate)
-                                axios.post('https://atixbook.com/api/dev/payment/va',data_generate, header)
+                                let xmls = `
+                                <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:tagihanInsert">
+                                    <soapenv:Header/>
+                                    <soapenv:Body>
+                                    <urn:ws_tagihan_insert soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                                        <username xsi:type="xsd:string">BALI_SANTI</username>
+                                        <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
+                                        <noid xsi:type="xsd:string">${res.data[last - 1].invoice.id}</noid>
+                                        <nama xsi:type="xsd:string">${res.data[0].penumpang.nama_penumpang}</nama>
+                                        <tagihan xsi:type="xsd:double">${parseInt(res.data[last - 1].invoice.grandtotal)}</tagihan>
+                                        <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
+                                        <ket_1_val xsi:type="xsd:string">${res.data[last - 1].invoice.nama_armada}</ket_1_val>
+                                        <ket_2_val xsi:type="xsd:string">${date_book}</ket_2_val>
+                                        <ket_3_val xsi:type="xsd:string">${res.data[0].rute[0].tujuan_akhirs.zona.lokasi}</ket_3_val>
+                                        <ket_4_val xsi:type="xsd:string">${res.data[last - 1].invoice.created_at}</ket_4_val>
+                                        <ket_5_val xsi:type="xsd:string">VA - BPD Payment</ket_5_val>
+                                        <ket_6_val xsi:type="xsd:string">${inputList.length}</ket_6_val>
+                                        <ket_7_val xsi:type="xsd:string">${kepentinganPenumpangText(res.data[0].penumpang.id_tujuan)}</ket_7_val>
+                                        <ket_8_val xsi:type="xsd:string">${res.data[0].penumpang.updated_at}</ket_8_val>
+                                        <ket_9_val xsi:type="xsd:string"></ket_9_val>
+                                        <ket_10_val xsi:type="xsd:string"></ket_10_val>
+                                        <ket_11_val xsi:type="xsd:string"></ket_11_val>
+                                        <ket_12_val xsi:type="xsd:string"></ket_12_val>
+                                        <ket_13_val xsi:type="xsd:string"></ket_13_val>
+                                        <ket_14_val xsi:type="xsd:string"></ket_14_val>
+                                        <ket_15_val xsi:type="xsd:string"></ket_15_val>
+                                        <ket_16_val xsi:type="xsd:string"></ket_16_val>
+                                        <ket_17_val xsi:type="xsd:string"></ket_17_val>
+                                        <ket_18_val xsi:type="xsd:string"></ket_18_val>
+                                        <ket_19_val xsi:type="xsd:string"></ket_19_val>
+                                        <ket_20_val xsi:type="xsd:string"></ket_20_val>
+                                        <ket_21_val xsi:type="xsd:string"></ket_21_val>
+                                        <ket_22_val xsi:type="xsd:string"></ket_22_val>
+                                        <ket_23_val xsi:type="xsd:string"></ket_23_val>
+                                        <ket_24_val xsi:type="xsd:string"></ket_24_val>
+                                        <ket_25_val xsi:type="xsd:string"></ket_25_val>
+                                    </urn:ws_tagihan_insert>
+                                    </soapenv:Body>
+                                </soapenv:Envelope>
+                              `;
+                                axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,
+    {headers: {'Content-Type': 'text/xml',},})
                                 .then((rest) => {
                                     console.log(rest)
+                                    var xml = new XMLParser().parseFromString(rest.data); 
+                                    let val = xml.children[0].children[0].children[0].value
+                                    let barval = val.replace(/&quot;/g, "\"")
+                                    let finality = JSON.parse(barval)
                                     let data_update = {
                                         id_invoice : res.data[last - 1].invoice.id,
-                                        bill_number : rest.data.data[0].noTiket
+                                        bill_number : finality.data[0].recordId
                                     }
                                     console.log(data_update)
                                     axios.post(apiUrl+'penumpang/update-invoice', data_update , header)
                                     .then((rest2) => {
                                         console.log(rest2)
-                                        window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/va-bpd"
+                                        // window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/va-bpd"
+                                        setNoVA(finality.data[0]["No Tagihan"])
                                         setModalLoading(false)
+                                        setModalInfo(true)
                                     })
 
                                 })
@@ -611,7 +668,10 @@ const Order = () => {
 
                                     <hr style={{borderColor:'black', margin:'20px 0'}}></hr>
                                         <div className="plans" >
-                                            <div className='nomargin bold-text'>Pilih Pembayaran <FontAwesomeIcon icon={faInfoCircle} className="icon-info" onClick={()=>{setModalInfo(true)}}  style={{margin:'0 5px'}}/></div>
+                                            <div className='nomargin bold-text'>Pilih Pembayaran <FontAwesomeIcon icon={faInfoCircle} className="icon-info" onClick={()=>{
+                                                setNoVA(0)
+                                                setModalInfo(true)
+                                            }}  style={{margin:'0 5px'}}/></div>
                                             <label className="plan basic-plan" htmlFor="bpd">
                                                 <input type="radio" name="payment" onChange={e => {setPayment(e.target.value)}} value={1} id="bpd"/>
                                                 <div className="plan-content">
@@ -669,87 +729,127 @@ const Order = () => {
 
                         <Modal
                             show={modalInfo}
-                            size="lg"
+                            size="xl"
                             aria-labelledby="contained-modal-title-vcenter"
                             onHide={() => {setModalInfo(false)}}
                             >
                             <Modal.Body>
                             <Tabs
-                                defaultActiveKey="home"
+                                defaultActiveKey={no_va !== 0 ? "internet_bpd" : "qris"}
                                 transition={false}
                                 id="noanim-tab-example"
                                 className="mb-3"
                                 style={{fontSize:'15px'}}
                             >
-                            <Tab eventKey="home" title="Mobile/Internet Banking Bank BPD Bali">
-                                <div className="info-text-title">
+                            <Tab eventKey="internet_bpd" title="Mobile/Internet Banking Bank BPD Bali">
+                                {no_va !== 0 ? <div className="info-text-title">
                                     <div>
-                                        <h4 className='bold-text color-text-white'>Kodo Billing</h4>
-                                        <h5 className='color-text-white'>09200000002544</h5>
+                                        <h4 className='bold-text color-text-white'>Kode Billing</h4>
+                                        <h5 className='color-text-white'>{no_va}</h5>
                                     </div>
-                                    <CopyToClipboard text={'09200000002544'}
+                                    <CopyToClipboard text={no_va}
                                         onCopy={() => {setCopy(true); alert('Text berhasil disalin')}}>
                                         <button className='copy-btn'>Salin ke papan ketik</button>
                                     </CopyToClipboard>
-                                </div>
+                                </div> : ""}
                                 <div className="info-text-content">
                                         <ul>
-                                            <li>Scan QRCode yang tertera.</li>
-                                            <li>Cek nominal sesuai dengan total biaya pembelian tiket.</li>
-                                            <li>Input PIN Anda dan lanjutkan transaksi.</li>
-                                            <li>Transaksi Sukses.</li>
-                                            <li>Simpan Resi bukti pembayaran.</li>
-                                            <li>Email Konfirmasi Pembayaran dikirimkan secara otomatis setelah pembayaran diterima.</li>
+                                            <li>Masukkan username dan password / PIN pada aplikasi Mobile / Internet Banking.</li>
+                                            <li>Pilih menu “Pembayaran”.</li>
+                                            <li>Pilih “Tiket Wisata”</li>
+                                            <li>Pilih Input Nomor ID lalu Pilih “e-Tiket Bali Santi”.</li>
+                                            <li>Input Nomor ID/tagihan {no_va === 0 ? "(Contoh: 123 )" : no_va}.</li>
+                                            <li>Input PIN untuk melanjutkan transaksi.</li>
+                                            <li>Selesai.</li>
                                         </ul>
                                 </div>
                             </Tab>
-                            <Tab eventKey="profile" title="ATM Bersama / Online / E-Banking Bank Lain">
-                                <div className="info-text-title">
+                            <Tab eventKey="atm_gpn" title="ATM GPN Bank Lain">
+                                {no_va !== 0 ? <div className="info-text-title">
                                     <div>
-                                        <h4 className='bold-text color-text-white'>Kodo Billing</h4>
-                                        <h5 className='color-text-white'>09200000002544</h5>
+                                        <h4 className='bold-text color-text-white'>Kode Billing</h4>
+                                        <h5 className='color-text-white'>{"1295344" + no_va}</h5>
                                     </div>
-                                    <CopyToClipboard text={'09200000002544'}
+                                    <CopyToClipboard text={"1295344" + no_va}
                                         onCopy={() => {setCopy(true); alert('Text berhasil disalin')}}>
                                         <button className='copy-btn'>Salin ke papan ketik</button>
                                     </CopyToClipboard>
-                                </div>
+                                </div>: ""}
                                 <div className="info-text-content">
                                         <ul>
-                                            <li>Pilih transfer ke Bank Lain.</li>
-                                            <li>Masukkan Kode Bank BPD Bali (129) jika transaksi dilakukan melalui layanan ATM atau pilih Bank BPD Bali sebagai bank tujuan transfer jika transaksi dilakukan melalui layanan mobile banking.</li>
-                                            <li><small>Masukkan Kode Billing <strong id="copy_real" data-target="#va_number1">09200000002544</strong> sebagai rekening tujuan (Nomor Virtual Account dikirim ke email masing-masing saat selesai pemesanan tiket atau dapat dilihat dihalaman pemesanan tiket pada website).</small></li>
-                                            <li>Masukkan Nominal sesuai dengan total biaya pembelian tiket (tidak boleh lebih/kurang).</li>
-                                            <li>Masukkan Nomor Referensi (bebas).</li>
-                                            <li>Transaksi Sukses.</li>
-                                            <li>Simpan Resi bukti pembayaran.</li>
-                                            <li>Email Konfirmasi Pembayaran dikirimkan secara otomatis setelah pembayaran diterima.</li>
-
+                                            <li>Pilih Bahasa</li>
+                                            <li>Masukkan PIN</li>
+                                            <li>Pilih “Transaksi Lainnya”</li>
+                                            <li>Pilih “Transfer”</li>
+                                            <li>Pilih “Ke Rekening Bank Lain”</li>
+                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 1295344123 )" : "1295344" + no_va} lalu tekan “Benar/Lanjut”</li>
+                                            <li>Input nominal yang ingin ditransfer sesuai tagihan yang ingin dibayar, lalu tekan "Benar/Lanjut".</li>
+                                            <li>Silakan isi atau kosongkan nomor referensi transfer kemudian tekan “Benar”</li>
+                                            <li>Muncul Layar Konfirmasi Transfer yang berisi nomor rekening tujuan bank beserta jumlah yang dibayar</li>
+                                            <li>Jika sudah benar, Tekan “Benar”</li>
+                                            <li>Selesai.</li>
                                         </ul>
                                 </div>
                             </Tab>
-                            <Tab eventKey="contact" title="QRIS">
-                                <div className="info-text-title">
+                            <Tab eventKey="kliring_banklain" title="Kliring Bank Lain">
+                                {no_va !== 0 ? <div className="info-text-title">
                                     <div>
-                                        <h4 className='bold-text color-text-white'>Kodo Billing</h4>
-                                        <h5 className='color-text-white'>09200000002544</h5>
+                                        <h4 className='bold-text color-text-white'>Kode Billing</h4>
+                                        <h5 className='color-text-white'>{"1295344" + no_va}</h5>
                                     </div>
-                                    <CopyToClipboard text={'09200000002544'}
+                                    <CopyToClipboard text={"1295344" + no_va}
                                         onCopy={() => {setCopy(true); alert('Text berhasil disalin')}}>
                                         <button className='copy-btn'>Salin ke papan ketik</button>
                                     </CopyToClipboard>
-                                </div>
+                                </div>: ""}
                                 <div className="info-text-content">
                                         <ul>
-                                            <li>Scan QRCode yang tertera.</li>
-                                            <li>Cek nominal sesuai dengan total biaya pembelian tiket.</li>
-                                            <li>Input PIN Anda dan lanjutkan transaksi.</li>
-                                            <li>Transaksi Sukses.</li>
-                                            <li>Simpan Resi bukti pembayaran</li>
-                                            <li>Email Konfirmasi Pembayaran dikirimkan secara otomatis setelah pembayaran diterima</li>
+                                            <li>Pilih “Transfer ke Bank Lain”</li>
+                                            <li>Pilih “Bank BPD Bali” sebagai bank tujuan.</li>
+                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 1295344123 )" : "1295344" + no_va} (No Virtual Account).</li>
+                                            <li>Input nominal yang ingin ditransfer sesuai tagihan yang ingin dibayar. Mohon dipastikan nominal yang akan ditransfer sama dengan jumlah tagihan yang harus dibayar agar proses bisa berjalan sukses.</li>
+                                            <li>Lanjutkan transaksi.</li>
+                                            <li>Selesai.</li>
                                         </ul>
                                 </div>
                             </Tab>
+                            <Tab eventKey="internet_banklain" title="Mobile/Internet Banking Bank Lain">
+                                {no_va !== 0 ? <div className="info-text-title">
+                                    <div>
+                                        <h4 className='bold-text color-text-white'>Kode Billing</h4>
+                                        <h5 className='color-text-white'>{"1295344" + no_va}</h5>
+                                    </div>
+                                    <CopyToClipboard text={"1295344" + no_va}
+                                        onCopy={() => {setCopy(true); alert('Text berhasil disalin')}}>
+                                        <button className='copy-btn'>Salin ke papan ketik</button>
+                                    </CopyToClipboard>
+                                </div>: ""}
+                                <div className="info-text-content">
+                                        <ul>
+                                            <li>Login pada aplikasi Mobile/Internet Banking Anda.</li>
+                                            <li>Pilih menu “Transfer”.</li>
+                                            <li>Pilih menu “Transfer Antar Bank”.</li>
+                                            <li>Pilih bank tujuan “Bank BPD Bali”.</li>
+                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 1295344123 )" : "1295344" + no_va} (No Virtual Account).</li>
+                                            <li>Input nominal yang ingin ditransfer sesuai tagihan yang ingin dibayar, lalu tekan "Benar".</li>
+                                            <li>Muncul Layar Konfirmasi Transfer yang berisi nomor rekening tujuan bank beserta jumlah yang dibayar.</li>
+                                            <li>Masukkan Password atau PIN.</li>
+                                            <li>Selesai.</li>
+                                        </ul>
+                                </div>
+                            </Tab>
+                            {no_va === 0 ? <Tab eventKey="qris" title="QRIS">
+                                <div className="info-text-content">
+                                    <ul>
+                                        <li>Scan QRCode yang tertera.</li>
+                                        <li>Cek nominal sesuai dengan total biaya pembelian tiket.</li>
+                                        <li>Input PIN Anda dan lanjutkan transaksi.</li>
+                                        <li>Transaksi Sukses.</li>
+                                        <li>Simpan Resi bukti pembayaran</li>
+                                        <li>Email Konfirmasi Pembayaran dikirimkan secara otomatis setelah pembayaran diterima</li>
+                                    </ul>
+                                </div>
+                            </Tab>: ""}
                             </Tabs>
                             </Modal.Body>
                             <Modal.Footer>

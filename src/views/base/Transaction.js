@@ -62,11 +62,11 @@ const Transaction = () => {
                             status: 1
                         }
                         axios.post(apiUrl + 'penumpang/update-status-invoice', data)
-                        .then((res) => {
+                        .then(() => {
                             console.log('sukses update')
                         })
                     }
-                }).catch((error) => {
+                }).catch(() => {
                     setModalLoading(false)
                 })
             }else{
@@ -75,7 +75,7 @@ const Transaction = () => {
         })
     }
 
-    const fetchManual = async () => {
+    const fetchManual = async () => {   
         if(detail_invoice.qrValue !== ''){
             let dataQr = {
                 merchantPan: "9360012900000001756",

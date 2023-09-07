@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMapPin,faCalendarAlt, faMarker, faBullhorn } from '@fortawesome/free-solid-svg-icons'
 import Slider from "react-slick";
+import XMLParser from 'react-xml-parser';
 
 import logoKlk from './../../assets/logo-kabupaten-klungkung-bali.png';
 import logoDishub from './../../assets/logo-dinas-perhubungan-png-3.png';
@@ -37,23 +38,20 @@ const Home = () => {
   const [pengumumans, setPengumuman] = useState([]);
   
   const fetchDataTujuan = async (id_zona_from) => {
-    await axios.get(apiUrl + 'jadwal_keberangkatan/get-zona-akhir?zona_awal=' + id_zona_from)
-    .then((res) => {
-        if(res.data.length !== 0){
-          setIdZonaTo(res.data[0].id_zona)
-          handleRemoveOp()
-        }else{
-          setIdZonaTo(0)
-        }
-        setDataTujuan(res.data)
-    })
-
-    const wisa = await axios.get(apiUrl + 'wisata')
-    setWisata(wisa.data.data.wisatas)
-
-    const peng = await axios.get(apiUrl + 'pengumuman')
-    setPengumuman(peng.data.data.pengumumans)
-
+    const jadwal = axios.get(apiUrl + 'jadwal_keberangkatan/get-zona-akhir?zona_awal=' + id_zona_from)
+    const wis = axios.get(apiUrl + 'wisata')
+    const pen = axios.get(apiUrl + 'pengumuman')
+    await axios.all([jadwal, wis, pen]).then(axios.spread(function(res, wisa, peng) {
+      if(res.data.length !== 0){
+        setIdZonaTo(res.data[0].id_zona)
+        handleRemoveOp()
+      }else{
+        setIdZonaTo(0)
+      }
+      setDataTujuan(res.data)
+      setWisata(wisa.data.data.wisatas)
+      setPengumuman(peng.data.data.pengumumans)
+    }));
   }
 
   useEffect(() => {

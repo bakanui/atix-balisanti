@@ -53,7 +53,6 @@ const Confirmation = () => {
     }, [])
 
     const fetchData = async () => {
-        console.log('it runs')
         const jad = await axios.get(apiUrl + 'penumpang/get-invoice?id_invoice='+invoice_id)
         setDetailInvoice(jad.data.invoice)
         // console.log(jad.data.invoice)
@@ -64,7 +63,7 @@ const Confirmation = () => {
         setTotalPay(jad.data.invoice.grandtotal)
         setMerchant(jad.data.invoice.armada.nama_armada)
         
-        if(payment_method == 'qris-bpd'){
+        if(payment_method == 'qris-bpd'){ // jika qris
            setQRBpd(jad.data.invoice.qrValue.replace(/['"]+/g, ''));
            setExpired(jad.data.invoice.expiredDate)
            setKodeNNS(jad.data.invoice.nns)
@@ -77,19 +76,29 @@ const Confirmation = () => {
             }
             await axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
             .then((res) => {
-                console.log(res)
                 if(res.data.status == 'Sudah Terbayar'){
                     history.push('/transaction/' + invoice_id + '/status-payment')
                 }
             })
-        }else{
-            let datas = {
-                invoice_id:invoice_id
-            }
-            // axios.post('https://atixbook.com/api/dev/payment/va/tagihan', datas)
-            // .then((res) => {
-            //     setStatusPayment(res.data.data[0].sts_bayar)
-            // })
+        }else{ //jika va
+            let xmls = `
+            <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:inquiryTagihan">
+                <soapenv:Header/>
+                <soapenv:Body>
+                    <urn:ws_inquiry_tagihan soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                    <username xsi:type="xsd:string">BALI_SANTI</username>
+                    <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
+                    <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
+                    <noid xsi:type="xsd:string">${invoice_id}</noid>
+                    </urn:ws_inquiry_tagihan>
+                </soapenv:Body>
+            </soapenv:Envelope>
+            `;
+            await axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,{headers: {'Content-Type': 'text/xml',},})
+            .then((res) => {
+                console.log(res)
+                // setStatusPayment(res)
+            })
         }
     }
 
