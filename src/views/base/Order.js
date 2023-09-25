@@ -141,29 +141,21 @@ const Order = () => {
 
 
     const fetchData = async () => {
-        const jad = await axios.get(apiUrl + 'jadwal_keberangkatan/view/'+id_jadwal)
-        setDetailJadwal(jad.data)
-
-        const tik = await axios.get(apiUrl + 'jadwal_keberangkatan/view/tiket/'+id_jadwal)
-        setTikets(tik.data)
-
+        const jadwal = await axios.get(apiUrl + 'jadwal_keberangkatan/view/'+ id_jadwal)
+        const tiket = await axios.get(apiUrl + 'jadwal_keberangkatan/view/tiket/'+ id_jadwal)
         const jenis = await axios.get(apiUrl + 'jenis_penumpang')
-        .catch(function (error) {
-          if(error.response?.status === 401){
-              localStorage.removeItem('access_token')
-              window.location.reload()
-          }
-        })
-        setJenisPenumpang(jenis.data)
-  
-        const tujuan = await axios.get(apiUrl + 'jenis_tujuan')
-          .catch(function (error) {
+        const tujuan = axios.get(apiUrl + 'jenis_tujuan')
+        await axios.all([jadwal, tiket, jenis, tujuan]).then(axios.spread(function(jad, tik, jen, tuj) {
+            setDetailJadwal(jad.data)
+            setTikets(tik.data)
+            setJenisPenumpang(jen.data)
+            setJenisTujuan(tuj.data)
+        })).catch(function (error) {
             if(error.response?.status === 401){
                 localStorage.removeItem('access_token')
                 window.location.reload()
             }
-          })
-          setJenisTujuan(tujuan.data)
+        })
     }
     useEffect(() => {
         fetchData()
@@ -305,8 +297,35 @@ const Order = () => {
             setModalLoading(true)
             axios.post(apiUrl + 'penumpang-group', ultimate_post)
             .then((res) => {
-                console.log(res)
-                let last = res.data.length
+                let loginer = {
+                    email: "masadi@gmail.com",
+                    password: "cobatebak"
+                }
+                axios.post('https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api/login', loginer)
+                .then((log => {
+                    let penumpangs = []
+                    ultimate_post.data.map((u) => {
+                        penumpangs.push({
+                            id_jenis_tiket: parseInt(u.id_tiket),
+                            nama_penumpang: u.nama_penumpang,
+                            no_identitas: String(u.no_identitas),
+                            jenis_kelamin: String(u.jenis_kelamin),
+                            email: u.email
+                        })
+                    })
+                    let penumpang = {
+                        tanggal: date_book,
+                        id_agen: 58,
+                        collect: total_pay,
+                        penumpangs: penumpangs
+                    }
+                    axios.post('https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api/penjualan', penumpang, {
+                        headers: {
+                            'Authorization': 'bearer ' + log.data.authorisation.token
+                        }, })
+                    .then((pen)=>{
+                        console.log(pen)
+                        let last = res.data.length
                         if(res.data[last - 1]){ //JIKA INVOICE BERHASIL DIGENERATE
                             if(payment_id == 2){ // PAYMENT QRIS BPD
                                 let data_generate = {
@@ -322,7 +341,7 @@ const Order = () => {
                                     ticketDate : res.data[last - 1].invoice.created_at
                                 }
                                 console.log(data_generate)
-                                axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/generateQrisPost',data_generate)
+                                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/generateQrisPost',data_generate)
                                 .then((rest) => {
                                         if(rest.status == 200){
                                             localStorage.setItem('qrValue', JSON.stringify(rest.data.qrValue));
@@ -366,18 +385,8 @@ const Order = () => {
                                     
                                 })
                             }else{ // PAYMENT VA BPD
-                                let data_generate = {
-                                    invoice_id : res.data[last - 1].invoice.id,
-                                    customer_name : res.data[0].penumpang.nama_penumpang,
-                                    grand_total : parseInt(res.data[last - 1].invoice.grandtotal),
-                                    merchant : res.data[last - 1].invoice.nama_armada,
-                                    visit_date : date_book,
-                                    description : "Generate VA From Atix Book",
-                                    total_ticket: inputList.length,
-                                    location: "BALI",
-                                    email: res.data[last - 1].invoice.email
-                                }
-                                console.log(data_generate)
+                                // let billNumber = 64110000 + parseInt(date_book.replace(/\D/g,'')) + parseInt(res.data[last - 1].invoice.id)
+                                let billNumber = pen.data[0].kode_booking
                                 let xmls = `
                                 <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:tagihanInsert">
                                     <soapenv:Header/>
@@ -385,7 +394,7 @@ const Order = () => {
                                     <urn:ws_tagihan_insert soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
                                         <username xsi:type="xsd:string">BALI_SANTI</username>
                                         <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
-                                        <noid xsi:type="xsd:string">${res.data[last - 1].invoice.id}</noid>
+                                        <noid xsi:type="xsd:string">${billNumber}</noid>
                                         <nama xsi:type="xsd:string">${res.data[0].penumpang.nama_penumpang}</nama>
                                         <tagihan xsi:type="xsd:double">${parseInt(res.data[last - 1].invoice.grandtotal)}</tagihan>
                                         <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
@@ -417,9 +426,9 @@ const Order = () => {
                                     </urn:ws_tagihan_insert>
                                     </soapenv:Body>
                                 </soapenv:Envelope>
-                              `;
-                                axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,
-    {headers: {'Content-Type': 'text/xml',},})
+                                `;
+                                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,
+        {headers: {'Content-Type': 'text/xml',},})
                                 .then((rest) => {
                                     console.log(rest)
                                     var xml = new XMLParser().parseFromString(rest.data); 
@@ -428,7 +437,8 @@ const Order = () => {
                                     let finality = JSON.parse(barval)
                                     let data_update = {
                                         id_invoice : res.data[last - 1].invoice.id,
-                                        bill_number : finality.data[0].recordId
+                                        bill_number : finality.data[0].recordId,
+                                        no_va : billNumber.toString()
                                     }
                                     console.log(data_update)
                                     axios.post(apiUrl+'penumpang/update-invoice', data_update , header)
@@ -439,7 +449,7 @@ const Order = () => {
                                         setModalLoading(false)
                                         setModalInfo(true)
                                     })
-
+        
                                 })
                                 .catch((error) => {
                                     console.log(error)
@@ -454,7 +464,7 @@ const Order = () => {
                                     });
                                 })
                             }
-
+        
                         }else{
                             setModalLoading(false)
                             toast.error('Terjadi kesalahan pada sistem, Mohon coba beberapa saat lagi!', {
@@ -467,6 +477,8 @@ const Order = () => {
                                 progress: undefined,
                             });
                         }
+                    })
+                }))
                
 
             }).catch((error) => {
@@ -758,7 +770,7 @@ const Order = () => {
                                             <li>Pilih menu “Pembayaran”.</li>
                                             <li>Pilih “Tiket Wisata”</li>
                                             <li>Pilih Input Nomor ID lalu Pilih “e-Tiket Bali Santi”.</li>
-                                            <li>Input Nomor ID/tagihan {no_va === 0 ? "(Contoh: 123 )" : no_va}.</li>
+                                            <li>Input Nomor ID/tagihan {no_va === 0 ? "(Contoh: 12345678 )" : no_va}.</li>
                                             <li>Input PIN untuk melanjutkan transaksi.</li>
                                             <li>Selesai.</li>
                                         </ul>
@@ -806,7 +818,7 @@ const Order = () => {
                                         <ul>
                                             <li>Pilih “Transfer ke Bank Lain”</li>
                                             <li>Pilih “Bank BPD Bali” sebagai bank tujuan.</li>
-                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 1295344123 )" : "1295344" + no_va} (No Virtual Account).</li>
+                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 129534412345678 )" : "1295344" + no_va} (No Virtual Account).</li>
                                             <li>Input nominal yang ingin ditransfer sesuai tagihan yang ingin dibayar. Mohon dipastikan nominal yang akan ditransfer sama dengan jumlah tagihan yang harus dibayar agar proses bisa berjalan sukses.</li>
                                             <li>Lanjutkan transaksi.</li>
                                             <li>Selesai.</li>
@@ -817,9 +829,9 @@ const Order = () => {
                                 {no_va !== 0 ? <div className="info-text-title">
                                     <div>
                                         <h4 className='bold-text color-text-white'>Kode Billing</h4>
-                                        <h5 className='color-text-white'>{"1295344" + no_va}</h5>
+                                        <h5 className='color-text-white'>{"5344" + no_va}</h5>
                                     </div>
-                                    <CopyToClipboard text={"1295344" + no_va}
+                                    <CopyToClipboard text={"5344" + no_va}
                                         onCopy={() => {setCopy(true); alert('Text berhasil disalin')}}>
                                         <button className='copy-btn'>Salin ke papan ketik</button>
                                     </CopyToClipboard>
@@ -830,7 +842,7 @@ const Order = () => {
                                             <li>Pilih menu “Transfer”.</li>
                                             <li>Pilih menu “Transfer Antar Bank”.</li>
                                             <li>Pilih bank tujuan “Bank BPD Bali”.</li>
-                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 1295344123 )" : "1295344" + no_va} (No Virtual Account).</li>
+                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 534412345678 )" : "5344" + no_va} (No Virtual Account).</li>
                                             <li>Input nominal yang ingin ditransfer sesuai tagihan yang ingin dibayar, lalu tekan "Benar".</li>
                                             <li>Muncul Layar Konfirmasi Transfer yang berisi nomor rekening tujuan bank beserta jumlah yang dibayar.</li>
                                             <li>Masukkan Password atau PIN.</li>
