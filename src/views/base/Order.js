@@ -27,7 +27,9 @@ const Order = () => {
     const [butSumbit, setButSubmit] = useState(true)
     const [payment_id, setPayment] = useState(0)
     const [modal, setModal] = useState(false) 
-    const [modalInfo, setModalInfo] = useState(false) 
+    const [modalInfo, setModalInfo] = useState(false)
+    const [invoiceId, setInvoiceId] = useState(0)
+    const [statusVA, setStatusVA] = useState("03")
 
     const [modal_loading, setModalLoading] = useState(false) 
 
@@ -141,20 +143,45 @@ const Order = () => {
 
 
     const fetchData = async () => {
-        const jadwal = await axios.get(apiUrl + 'jadwal_keberangkatan/view/'+ id_jadwal)
-        const tiket = await axios.get(apiUrl + 'jadwal_keberangkatan/view/tiket/'+ id_jadwal)
-        const jenis = await axios.get(apiUrl + 'jenis_penumpang')
+        const jadwal = axios.get(apiUrl + 'jadwal_keberangkatan/view/'+ id_jadwal)
+        const tiket = axios.get(apiUrl + 'jadwal_keberangkatan/view/tiket/'+ id_jadwal)
+        const jenis = axios.get(apiUrl + 'jenis_penumpang')
         const tujuan = axios.get(apiUrl + 'jenis_tujuan')
         await axios.all([jadwal, tiket, jenis, tujuan]).then(axios.spread(function(jad, tik, jen, tuj) {
             setDetailJadwal(jad.data)
             setTikets(tik.data)
             setJenisPenumpang(jen.data)
             setJenisTujuan(tuj.data)
+            let xmls = `
+            <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:echoTest">
+                <soapenv:Header/>
+                <soapenv:Body>
+                <urn:ws_echo_test soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                    <username xsi:type="xsd:string">BALI_SANTI</username>
+                    <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
+                </urn:ws_echo_test>
+                </soapenv:Body>
+            </soapenv:Envelope>
+            `;
+            axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls, {headers: {'Content-Type': 'text/xml',},})
+            .then((r) => {
+                var xml = new XMLParser().parseFromString(r.data); 
+                let val = xml.children[0].children[0].children[0].value
+                let barval = val.replace(/&quot;/g, "\"")
+                let finality = JSON.parse(barval)
+                setStatusVA(finality.status)
+                console.log(finality)
+            })
         })).catch(function (error) {
-            if(error.response?.status === 401){
-                localStorage.removeItem('access_token')
-                window.location.reload()
-            }
+            toast.error('Terjadi kesalahan pada jaringan. Silahkan coba kembali.', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
         })
     }
     useEffect(() => {
@@ -291,7 +318,7 @@ const Order = () => {
     
     const pushToPayment = () => {
         setModal(false)
-        // console.log(ultimate_post)
+        console.log(ultimate_post)
         // console.log(total_pay)
        
             setModalLoading(true)
@@ -301,7 +328,7 @@ const Order = () => {
                     email: "masadi@gmail.com",
                     password: "cobatebak"
                 }
-                axios.post('https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api/login', loginer)
+                axios.post('https://maiharta.ddns.net:3100/http://103.139.193.10:3001/api/login', loginer)
                 .then((log => {
                     let penumpangs = []
                     ultimate_post.data.map((u) => {
@@ -319,7 +346,8 @@ const Order = () => {
                         collect: total_pay,
                         penumpangs: penumpangs
                     }
-                    axios.post('https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api/penjualan', penumpang, {
+                    console.log(penumpang)
+                    axios.post('https://maiharta.ddns.net:3100/http://103.139.193.10:3001/api/penjualan', penumpang, {
                         headers: {
                             'Authorization': 'bearer ' + log.data.authorisation.token
                         }, })
@@ -438,13 +466,15 @@ const Order = () => {
                                     let data_update = {
                                         id_invoice : res.data[last - 1].invoice.id,
                                         bill_number : finality.data[0].recordId,
-                                        no_va : billNumber.toString()
+                                        no_va : billNumber.toString(),
+                                        status: 0,
                                     }
                                     console.log(data_update)
                                     axios.post(apiUrl+'penumpang/update-invoice', data_update , header)
                                     .then((rest2) => {
                                         console.log(rest2)
                                         // window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/va-bpd"
+                                        setInvoiceId(res.data[last - 1].invoice.id)
                                         setNoVA(finality.data[0]["No Tagihan"])
                                         setModalLoading(false)
                                         setModalInfo(true)
@@ -684,7 +714,7 @@ const Order = () => {
                                                 setNoVA(0)
                                                 setModalInfo(true)
                                             }}  style={{margin:'0 5px'}}/></div>
-                                            <label className="plan basic-plan" htmlFor="bpd">
+                                            {statusVA !== "03" ? <label className="plan basic-plan" htmlFor="bpd">
                                                 <input type="radio" name="payment" onChange={e => {setPayment(e.target.value)}} value={1} id="bpd"/>
                                                 <div className="plan-content">
                                                     <img loading="lazy" src={logoBPD} alt="BPD Virtual Account" />
@@ -693,7 +723,16 @@ const Order = () => {
                                                     {/* <p>Virtual Account BPD Bali, ........</p> */}
                                                     </div>
                                                 </div>
-                                            </label>
+                                            </label> : <label className="plan basic-plan" htmlFor="bpd" style={{backgroundColor: 'lightgray'}}>
+                                                <input disabled type="radio" name="payment" onChange={e => {setPayment(e.target.value)}} value={1} id="bpd"/>
+                                                <div className="plan-content">
+                                                    <img loading="lazy" src={logoBPD} alt="BPD Virtual Account" style={{filter: 'grayscale(100%)'}}/>
+                                                    <div className="plan-details">
+                                                    <span style={{color: 'gray'}}>Vitual Account BPD Bali</span>
+                                                    {/* <p>Virtual Account BPD Bali, ........</p> */}
+                                                    </div>
+                                                </div>
+                                            </label>}
 
                                             <label className="plan complete-plan" htmlFor="qris">
                                                 <input type="radio" id="qris" onChange={e => {setPayment(e.target.value)}} value={2} name="payment" />
@@ -865,6 +904,7 @@ const Order = () => {
                             </Tabs>
                             </Modal.Body>
                             <Modal.Footer>
+                                {no_va !== 0 ? <Button type='button' className='btn-2-orng' href={"/transaction/"+invoiceId+"/status-payment"} onClick={() => {setModalInfo(false)}}>Cek Status Pembayaran</Button> : ''}
                                 <Button type='button' className='btn-2-orng' onClick={() => {setModalInfo(false)}}>Tutup</Button>
                             </Modal.Footer>
                         </Modal>

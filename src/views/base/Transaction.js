@@ -11,6 +11,7 @@ import { Link, useParams } from "react-router-dom";
 import ReactLoading from 'react-loading';
 import QRCode from "react-qr-code";
 import { sha256 } from 'js-sha256';
+import XMLParser from 'react-xml-parser';
 import _ from "lodash";
 
 const Transaction = () => {
@@ -44,14 +45,14 @@ const Transaction = () => {
             console.log(jad.data.invoice)
             setKeberangkatan(jad.data.keberangkatans)
             setPenumpang(jad.data.penumpangs)
-            if(jad.data.invoice.qrValue !== ''){
+            if(jad.data.invoice.qrValue !== null){
                 let dataQr = {
                     merchantPan: "9360012900000001756",
                     terminalUser: "A01",
                     qrValue: jad.data.invoice.qrValue,
                     hashcodeKey: sha256("9360012900000001756A01" + jad.data.invoice.qrValue + "XkKe2UXe")
                 }
-                axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
+                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
                 .then((res) => {
                     console.log(res.data)
                     setDataDetailPayment(res.data)
@@ -69,21 +70,27 @@ const Transaction = () => {
                 }).catch(() => {
                     setModalLoading(false)
                 })
-            }else{
+            }
+            else{
+                let fauxPembayaran = {
+                    sts_bayar: jad.data.invoice.status,
+                }
+                console.log(fauxPembayaran)
+                setDataDetailPayment(fauxPembayaran)
                 setModalLoading(false)
             }
         })
     }
 
     const fetchManual = async () => {   
-        if(detail_invoice.qrValue !== ''){
+        if(detail_invoice.qrValue !== null){
             let dataQr = {
                 merchantPan: "9360012900000001756",
                 terminalUser: "A01",
                 qrValue: detail_invoice.qrValue,
                 hashcodeKey: sha256("9360012900000001756A01" + detail_invoice.qrValue + "XkKe2UXe")
             }
-            await axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
+            await axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
             .then((res) => {
                 console.log(res.data)
                 setDataDetailPayment(res.data)
@@ -101,6 +108,32 @@ const Transaction = () => {
             }).catch((error) => {
                 setModalLoading(false)
             })
+        }else if(detail_invoice.no_va !== null){
+            let xmls = `
+            <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:inquiryTagihan">
+                <soapenv:Header/>
+                <soapenv:Body>
+                <urn:ws_inquiry_tagihan soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                    <username xsi:type="xsd:string">BALI_SANTI</username>
+                    <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
+                    <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
+                    <noid xsi:type="xsd:string">${detail_invoice.no_va}</noid>
+                </urn:ws_inquiry_tagihan>
+                </soapenv:Body>
+            </soapenv:Envelope>
+            `;
+                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,
+                {headers: {'Content-Type': 'text/xml',},})
+                .then((rest) => {
+                    console.log(rest)
+                    var xml = new XMLParser().parseFromString(rest.data); 
+                    let val = xml.children[0].children[0].children[0].value
+                    let barval = val.replace(/&quot;/g, "\"")
+                    let finality = JSON.parse(barval)
+                    console.log(finality)
+                    setDataDetailPayment(finality.data[0])
+                    setModalLoading(false)
+                })
         }else{
             setModalLoading(false)
         }
@@ -113,13 +146,17 @@ const Transaction = () => {
             setDetailInvoice(jad.data.invoice)
             setKeberangkatan(jad.data.keberangkatans)
             setPenumpang(jad.data.penumpangs)
+            let fauxPembayaran = {
+                sts_bayar: jad.data.invoice.status,
+            }
+            setDataDetailPayment(fauxPembayaran)
             setModalLoading(false)
         })
     }
 
 
     function getCard(datas){
-        if(datas.status == 'Belum Terbayar'){
+        if(datas.status == 'Belum Terbayar' || datas.sts_bayar == '0'){
             return(
                 <div className='card-inner-status'>
                     <span className='card__pending'>
@@ -136,7 +173,7 @@ const Transaction = () => {
                     {/* <h3 className='card__submsg'>Terima kasih, Selamat sampai tujuan</h3> */}
                 </div>
             )
-        }else if(datas.status == 'Sudah Terbayar'){
+        }else if(datas.status == 'Sudah Terbayar' || datas.sts_bayar == '1'){
             return(
                 <div className='card-inner-status'>
                     <span className='card__success'>
