@@ -33,7 +33,7 @@ const Home = () => {
   const [url_book, setUrlBook] = useState();
   let tomorrow = new Date()
   tomorrow.setDate(today.getDate() + 1)
-  const [startDate, setStartDate] = useState(tomorrow)
+  const [startDate, setStartDate] = useState(today)
   const [wisatas, setWisata] = useState([]);
   const [pengumumans, setPengumuman] = useState([]);
   

@@ -74,7 +74,7 @@ const Confirmation = () => {
             qrValue: jad.data.invoice.qrValue,
             hashcodeKey: sha256("9360012900000001756A01" + jad.data.invoice.qrValue + "XkKe2UXe")
             }
-            await axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
+            await axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
             .then((res) => {
                 if(res.data.status == 'Sudah Terbayar'){
                     history.push('/transaction/' + invoice_id + '/status-payment')
@@ -94,7 +94,7 @@ const Confirmation = () => {
                 </soapenv:Body>
             </soapenv:Envelope>
             `;
-            await axios.post('http://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,{headers: {'Content-Type': 'text/xml',},})
+            await axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,{headers: {'Content-Type': 'text/xml',},})
             .then((res) => {
                 console.log(res)
                 // setStatusPayment(res)

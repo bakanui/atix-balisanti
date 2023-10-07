@@ -28,12 +28,12 @@ const Transaction = () => {
     
     useEffect(() => {
         fetchFirst()
-        if(detail_invoice.status === 0){
-            let interval = setInterval(() => {
-                fetchAuto()
-            }, 30000);
-            return () => clearInterval(interval);
-        }
+        // if(detail_invoice.status === 0){
+        //     let interval = setInterval(() => {
+        //         fetchAuto()
+        //     }, 30000);
+        //     return () => clearInterval(interval);
+        // }
         // eslint-disable-next-line
     }, [])
 
@@ -64,7 +64,15 @@ const Transaction = () => {
                         }
                         axios.post(apiUrl + 'penumpang/update-status-invoice', data)
                         .then(() => {
-                            console.log('sukses update')
+                            let fakeResponse = {
+                                message: "Tagihan sukses terbayar",
+                                invoice: jad.data.invoice,
+                                keberangkatan: jad.data.keberangkatans,
+                                penumpang: jad.data.penumpangs,
+                                payment: res.data.data
+                            }
+                            console.log(fakeResponse)
+                            setModalLoading(false)  
                         })
                     }
                 }).catch(() => {
