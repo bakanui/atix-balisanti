@@ -372,16 +372,25 @@ const Order = () => {
                         if(res.data[last - 1]){ //JIKA INVOICE BERHASIL DIGENERATE
                             if(payment_id == 2){ // PAYMENT QRIS BPD
                                 let data_generate = {
+                                    // merchantPan: "9360012900000001756",
+                                    // terminalUser: "A01",
+                                    // merchantName : res.data[last - 1].invoice.nama_armada,
+                                    // amount : res.data[last - 1].invoice.grandtotal,
+                                    // billNumber : res.data[last - 1].invoice.id,
+                                    // hashcodeKey: sha256("9360012900000001756A01" + res.data[last - 1].invoice.id + "XkKe2UXe"),
+                                    // email : res.data[last - 1].invoice.email,
+                                    // customerName : res.data[0].penumpang.nama_penumpang,
+                                    // operatorName : res.data[last - 1].invoice.nama_armada,
                                     merchantPan: "9360012900000001756",
                                     terminalUser: "A01",
-                                    merchantName : res.data[last - 1].invoice.nama_armada,
-                                    amount : 20000000,
-                                    billNumber : res.data[last - 1].invoice.id,
-                                    hashcodeKey: sha256("9360012900000001756A01" + res.data[last - 1].invoice.id + "XkKe2UXe"),
-                                    email : res.data[last - 1].invoice.email,
-                                    customerName : res.data[0].penumpang.nama_penumpang,
-                                    operatorName : res.data[last - 1].invoice.nama_armada,
-                                    ticketDate : res.data[last - 1].invoice.created_at
+                                    merchantName: "Gangga Express",
+                                    amount: 25000,
+                                    billNumber: "251",
+                                    hashcodeKey: sha256("9360012900000001756A01" + "251" + "XkKe2UXe"),
+                                    email: "gusbhas@gmail.com",
+                                    customerName: "Kadek Desiana",
+                                    operatorName: "Gangga Express",
+                                    ticketDate: "2023-08-25"
                                 }
                                 console.log(data_generate)
                                 axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/generateQrisPost',data_generate)

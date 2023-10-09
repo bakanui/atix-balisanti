@@ -1121,6 +1121,21 @@ overflow: hidden;
   align-items: center;
   justify-content: center
 }
+
+.card_errmsg{
+  position: absolute;
+  top: -50px;
+  left: 145px;
+  width: 100px;
+  height: 100px;
+  border-radius: 100%;
+  background-color: orange;
+  border: 5px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center
+}
+
 .card__expired{
   position: absolute;
   top: -50px;
@@ -1136,6 +1151,11 @@ overflow: hidden;
 }
 .check-payment {
   color: #fff;
+  line-height: 100px;
+  font-size: 45px;
+}
+.war-payment {
+  color: #000;
   line-height: 100px;
   font-size: 45px;
 }

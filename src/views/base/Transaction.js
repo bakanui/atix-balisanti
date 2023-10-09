@@ -4,7 +4,7 @@ import { apiUrl } from '../../reusable/constants'
 import { Button, Modal} from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faAnchor, faCheck, faCheckCircle, faClock, faQuestion, faRefresh, faTicket, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faAnchor, faCheck, faCheckCircle, faClock, faQuestion, faRefresh, faTicket, faTimes, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link, useParams } from "react-router-dom";
@@ -55,7 +55,11 @@ const Transaction = () => {
                 axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
                 .then((res) => {
                     console.log(res.data)
-                    setDataDetailPayment(res.data)
+                    if(res.data.message !== undefined){
+                        setDataDetailPayment(res.data)
+                    }else{
+                        setDataDetailPayment(res.data)
+                    }
                     setModalLoading(false)
                     if(res.data.data.status == 'Sudah Terbayar'){
                         let data = {
@@ -64,18 +68,10 @@ const Transaction = () => {
                         }
                         axios.post(apiUrl + 'penumpang/update-status-invoice', data)
                         .then(() => {
-                            let fakeResponse = {
-                                message: "Tagihan sukses terbayar",
-                                invoice: jad.data.invoice,
-                                keberangkatan: jad.data.keberangkatans,
-                                penumpang: jad.data.penumpangs,
-                                payment: res.data.data
-                            }
-                            console.log(fakeResponse)
                             setModalLoading(false)  
                         })
                     }
-                }).catch(() => {
+                }).catch((err) => {
                     setModalLoading(false)
                 })
             }
@@ -164,6 +160,7 @@ const Transaction = () => {
 
 
     function getCard(datas){
+        console.log(datas.message)
         if(datas.status == 'Belum Terbayar' || datas.sts_bayar == '0'){
             return(
                 <div className='card-inner-status'>
@@ -210,13 +207,24 @@ const Transaction = () => {
                 </div>
             )
         }
-        else{
+        else if(datas.message !== undefined){
+            return(
+                <div className='card-inner-status'>
+                    <span className='card_errmsg'>
+                        <FontAwesomeIcon  icon={faExclamationTriangle} className="check-payment" />
+                    </span>
+                    <h1 className='card__msg'>{datas.message}. Mohon coba kembali.</h1>
+                    <h3 className='card__submsg'>{datas.errorCode}</h3>
+                    {/* <h3 className='card__submsg'>Terima kasih, Selamat sampai tujuan</h3> */}
+                </div>
+            )
+        }else{
             return(
                 <div className='card-inner-status'>
                     <span className='card_notfound'>
                         <FontAwesomeIcon  icon={faQuestion} className="check-payment" />
                     </span>
-                    <h1 className='card__msg'>Status tidak diketahui</h1>
+                    <h1 className='card__msg'>Status</h1>
                     <h3 className='card__submsg'>404</h3>
                     {/* <h3 className='card__submsg'>Terima kasih, Selamat sampai tujuan</h3> */}
                 </div>
@@ -224,17 +232,31 @@ const Transaction = () => {
         }
     }
 
-    function get404(){
-        return(
-            <div className='card-inner-status'>
-                <span className='card_notfound'>
-                    <FontAwesomeIcon  icon={faQuestion} className="check-payment" />
-                </span>
-                <h1 className='card__msg'>Status tidak diketahui</h1>
-                <h3 className='card__submsg'>404</h3>
-                {/* <h3 className='card__submsg'>Terima kasih, Selamat sampai tujuan</h3> */}
-            </div>
-        )
+    function get404(datas){
+        console.log(datas)
+        if(datas === undefined){
+            return(
+                <div className='card-inner-status'>
+                    <span className='card_notfound'>
+                        <FontAwesomeIcon  icon={faQuestion} className="check-payment" />
+                    </span>
+                    <h1 className='card__msg'>Status</h1>
+                    <h3 className='card__submsg'>404</h3>
+                    {/* <h3 className='card__submsg'>Terima kasih, Selamat sampai tujuan</h3> */}
+                </div>
+            )
+        }else{
+            return(
+                <div className='card-inner-status'>
+                    <span className='card_errmsg'>
+                        <FontAwesomeIcon  icon={faExclamationTriangle} className="check-payment" />
+                    </span>
+                    <h1 className='card__msg'>{datas.message}. Mohon coba kembali.</h1>
+                    <h3 className='card__submsg'>{datas.errorCode}</h3>
+                    {/* <h3 className='card__submsg'>Terima kasih, Selamat sampai tujuan</h3> */}
+                </div>
+            )
+        }
     }
     
     return(
@@ -243,7 +265,7 @@ const Transaction = () => {
             <div className='center-container' style={{margin:'2rem 0'}}>
                     <div className='aboutus-components-core content-core-container'>
                         <div className="bg-status-tickets-print">
-                            {detail_payment ? getCard(detail_payment) : get404()}
+                            {detail_payment ? getCard(detail_payment) : get404(detail_payment)}
                         </div>
                         <div className='button-components' style={{textAlign:'center'}}>
                             <Button size='sm' onClick={() => {fetchManual()}} style={{margin:'10px 15px', maxWidth:'150px', padding:'.375rem .75rem', fontFamily:'MontSemiBold'}} className='button-book'>
