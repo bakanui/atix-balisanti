@@ -361,48 +361,39 @@ const Order = () => {
                         collect: total_pay,
                         penumpangs: penumpangs
                     }
-                    console.log(penumpang)
                     axios.post('https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api/penjualan', penumpang, {
                         headers: {
                             'Authorization': 'bearer ' + log.data.authorisation.token
                         }, })
                     .then((pen)=>{
-                        console.log(pen)
-                        let last = res.data.length - 1
+                        let last = res.data.length
+                        if (res.data[last-1].ditala !== undefined ){
+                            last = last - 1
+                        }
                         if(res.data[last - 1]){ //JIKA INVOICE BERHASIL DIGENERATE
                             if(payment_id == 2){ // PAYMENT QRIS BPD
                                 let data_generate = {
-                                    // merchantPan: "9360012900000001756",
-                                    // terminalUser: "A01",
-                                    // merchantName : res.data[last - 1].invoice.nama_armada,
-                                    // amount : res.data[last - 1].invoice.grandtotal,
-                                    // billNumber : res.data[last - 1].invoice.id,
-                                    // hashcodeKey: sha256("9360012900000001756A01" + res.data[last - 1].invoice.id + "XkKe2UXe"),
-                                    // email : res.data[last - 1].invoice.email,
-                                    // customerName : res.data[0].penumpang.nama_penumpang,
-                                    // operatorName : res.data[last - 1].invoice.nama_armada,
                                     merchantPan: "9360012900000001756",
                                     terminalUser: "A01",
-                                    merchantName: "Gangga Express",
-                                    amount: 25000,
-                                    billNumber: "251",
-                                    hashcodeKey: sha256("9360012900000001756A01" + "251" + "XkKe2UXe"),
-                                    email: "gusbhas@gmail.com",
-                                    customerName: "Kadek Desiana",
-                                    operatorName: "Gangga Express",
-                                    ticketDate: "2023-08-25"
+                                    merchantName : res.data[last - 1].invoice.nama_armada,
+                                    amount : res.data[last - 1].invoice.grandtotal,
+                                    billNumber : res.data[last - 1].invoice.id,
+                                    hashcodeKey: sha256("9360012900000001756A01" + res.data[last - 1].invoice.id + "XkKe2UXe"),
+                                    email : res.data[last - 1].invoice.email,
+                                    customerName : res.data[0].penumpang.nama_penumpang,
+                                    operatorName : res.data[last - 1].invoice.nama_armada,
                                 }
-                                console.log(data_generate)
                                 axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/generateQrisPost',data_generate)
                                 .then((rest) => {
                                         if(!rest.data.errorCode){
-                                            localStorage.setItem('qrValue', JSON.stringify(rest.data.qrValue));
-                                            localStorage.setItem('billNumber', JSON.stringify(rest.data.billNumber));
-                                            localStorage.setItem('invoice_id', JSON.stringify(res.data[last - 1].invoice.id));
-                                            localStorage.setItem('total', JSON.stringify(rest.data.totalAmount));
-                                            localStorage.setItem('expiredDate', "93600129");
-                                            localStorage.setItem('kodeNNS', JSON.stringify(rest.data.nns));
-                                            localStorage.setItem('merchant_name', JSON.stringify(res.data[last - 1].invoice.nama_armada));
+                                            console.log(rest)
+                                            localStorage.setItem('qrValue', JSON.stringify(rest.data.qrValue))
+                                            localStorage.setItem('billNumber', JSON.stringify(rest.data.billNumber))
+                                            localStorage.setItem('invoice_id', JSON.stringify(res.data[last - 1].invoice.id))
+                                            localStorage.setItem('total', JSON.stringify(rest.data.totalAmount))
+                                            localStorage.setItem('expiredDate', "93600129")
+                                            localStorage.setItem('kodeNNS', JSON.stringify(rest.data.nns))
+                                            localStorage.setItem('merchant_name', JSON.stringify(res.data[last - 1].invoice.nama_armada))
                                             let data_update = {
                                                 id_invoice : res.data[last - 1].invoice.id,
                                                 bill_number : rest.data.billNumber,
@@ -414,11 +405,9 @@ const Order = () => {
                                                 referenceNumber: rest.data.referenceNumber,
                                                 status: 0
                                             }
-                                            console.log(rest)
                                             axios.post(apiUrl+'penumpang/update-invoice', data_update, header)
-                                            .then((rest2) => {
-                                                console.log(rest2)
-                                                // window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/qris-bpd"
+                                            .then(() => {
+                                                window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/qris-bpd"
                                                 setModalLoading(false)
                                             })
                                             setModalLoading(false)
@@ -431,10 +420,9 @@ const Order = () => {
                                                     pauseOnHover: true,
                                                     draggable: true,
                                                     progress: undefined,
-                                                });
+                                                })
                                                 setModalLoading(false)
                                         }
-                                    
                                 }).catch((error) => {
                                     console.log(error)
                                         toast.error('Terjadi kesalahan pada internal sistem, Mohon coba beberapa saat lagi!', {
@@ -448,7 +436,6 @@ const Order = () => {
                                         });
                                     })
                             }else{ // PAYMENT VA BPD
-                                // let billNumber = 64110000 + parseInt(date_book.replace(/\D/g,'')) + parseInt(res.data[last - 1].invoice.id)
                                 let billNumber = pen.data[0].kode_booking
                                 let xmls = `
                                 <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:tagihanInsert">
@@ -493,8 +480,7 @@ const Order = () => {
                                 axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,
         {headers: {'Content-Type': 'text/xml',},})
                                 .then((rest) => {
-                                    console.log(rest)
-                                    var xml = new XMLParser().parseFromString(rest.data); 
+                                    var xml = new XMLParser().parseFromString(rest.data)
                                     let val = xml.children[0].children[0].children[0].value
                                     let barval = val.replace(/&quot;/g, "\"")
                                     let finality = JSON.parse(barval)
@@ -510,13 +496,10 @@ const Order = () => {
                                         no_va : billNumber.toString(),
                                         status: 0,
                                     }
-                                    console.log(data_update)
                                     axios.post(apiUrl+'penumpang/update-invoice', data_update , header)
                                     .then((rest2) => {
-                                        console.log(rest2)
                                         axios.post(apiUrl+'logs/va-bpd', super_finality, header)
                                         .then((rest3) => {
-                                            console.log(rest3)
                                             setInvoiceId(res.data[last - 1].invoice.id)
                                             setNoVA(finality.data[0]["No Tagihan"])
                                             setModalLoading(false)
@@ -534,7 +517,6 @@ const Order = () => {
                                                 });
                                             })
                                     }).catch((error) => {
-                                    console.log(error)
                                         toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
                                             position: "top-right",
                                             autoClose: 5000,
@@ -547,7 +529,6 @@ const Order = () => {
                                     })
                                 })
                                 .catch((error) => {
-                                    console.log(error)
                                     toast.error('Terjadi kesalahan pada generate VA BPD, Mohon coba beberapa saat lagi!', {
                                         position: "top-right",
                                         autoClose: 5000,
@@ -558,8 +539,7 @@ const Order = () => {
                                         progress: undefined,
                                     });
                                 })
-                            }
-        
+                            }        
                         }else{
                             setModalLoading(false)
                             toast.error('Terjadi kesalahan pada sistem, Mohon coba beberapa saat lagi!', {
