@@ -367,8 +367,9 @@ const Order = () => {
                         }, })
                     .then((pen)=>{
                         let last = res.data.length
-                        if (res.data[last-1].ditala !== undefined ){
+                        if (res.data[last - 1].ditlala){
                             last = last - 1
+                            console.log(last)
                         }
                         if(res.data[last - 1]){ //JIKA INVOICE BERHASIL DIGENERATE
                             if(payment_id == 2){ // PAYMENT QRIS BPD
@@ -383,6 +384,17 @@ const Order = () => {
                                     customerName : res.data[0].penumpang.nama_penumpang,
                                     operatorName : res.data[last - 1].invoice.nama_armada,
                                 }
+                                // let data_generate = {
+                                //     merchantPan: "9360012900000001756",
+                                //     terminalUser: "A01",
+                                //     merchantName : res.data[last - 1].invoice.nama_armada,
+                                //     amount : res.data[last - 1].invoice.grandtotal,
+                                //     billNumber : "628",
+                                //     hashcodeKey: sha256("9360012900000001756A01" + "628" + "XkKe2UXe"),
+                                //     email : res.data[last - 1].invoice.email,
+                                //     customerName : res.data[0].penumpang.nama_penumpang,
+                                //     operatorName : res.data[last - 1].invoice.nama_armada,
+                                // }
                                 axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/generateQrisPost',data_generate)
                                 .then((rest) => {
                                         if(!rest.data.errorCode){
@@ -391,14 +403,14 @@ const Order = () => {
                                             localStorage.setItem('billNumber', JSON.stringify(rest.data.billNumber))
                                             localStorage.setItem('invoice_id', JSON.stringify(res.data[last - 1].invoice.id))
                                             localStorage.setItem('total', JSON.stringify(rest.data.totalAmount))
-                                            localStorage.setItem('expiredDate', "93600129")
+                                            localStorage.setItem('expiredDate', JSON.stringify(rest.data.expiredDate))
                                             localStorage.setItem('kodeNNS', JSON.stringify(rest.data.nns))
                                             localStorage.setItem('merchant_name', JSON.stringify(res.data[last - 1].invoice.nama_armada))
                                             let data_update = {
                                                 id_invoice : res.data[last - 1].invoice.id,
                                                 bill_number : rest.data.billNumber,
                                                 qrvalue : rest.data.qrValue,
-                                                expiredDate : rest.data.expired,
+                                                expiredDate : rest.data.expiredDate,
                                                 nmid : rest.data.nmid,
                                                 nns: '93600129',
                                                 trxId: rest.data.trxId,
@@ -407,7 +419,7 @@ const Order = () => {
                                             }
                                             axios.post(apiUrl+'penumpang/update-invoice', data_update, header)
                                             .then(() => {
-                                                window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/qris-bpd"
+                                                // window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/qris-bpd"
                                                 setModalLoading(false)
                                             })
                                             setModalLoading(false)
@@ -437,6 +449,12 @@ const Order = () => {
                                     })
                             }else{ // PAYMENT VA BPD
                                 let billNumber = pen.data[0].kode_booking
+                                let tujuan = ''
+                                if (res.data[0].rute[0].tujuan_akhirs.zona.lokasi === "Nusa Penida"){
+                                    tujuan = "NP - Pelabuhan " + res.data[0].rute[0].tujuan_akhirs.nama_dermaga
+                                }else if (res.data[0].rute[0].tujuan_akhirs.zona.lokasi === "Klungkung") {
+                                    tujuan = "KLK - Pelabuhan " + res.data[0].rute[0].tujuan_akhirs.nama_dermaga
+                                }
                                 let xmls = `
                                 <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:tagihanInsert">
                                     <soapenv:Header/>
@@ -450,7 +468,7 @@ const Order = () => {
                                         <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
                                         <ket_1_val xsi:type="xsd:string">${res.data[last - 1].invoice.nama_armada}</ket_1_val>
                                         <ket_2_val xsi:type="xsd:string">${date_book}</ket_2_val>
-                                        <ket_3_val xsi:type="xsd:string">${res.data[0].rute[0].tujuan_akhirs.zona.lokasi}</ket_3_val>
+                                        <ket_3_val xsi:type="xsd:string">${tujuan}</ket_3_val>
                                         <ket_4_val xsi:type="xsd:string">${res.data[last - 1].invoice.created_at}</ket_4_val>
                                         <ket_5_val xsi:type="xsd:string">VA - BPD Payment</ket_5_val>
                                         <ket_6_val xsi:type="xsd:string">${inputList.length}</ket_6_val>
@@ -497,9 +515,9 @@ const Order = () => {
                                         status: 0,
                                     }
                                     axios.post(apiUrl+'penumpang/update-invoice', data_update , header)
-                                    .then((rest2) => {
+                                    .then(() => {
                                         axios.post(apiUrl+'logs/va-bpd', super_finality, header)
-                                        .then((rest3) => {
+                                        .then(() => {
                                             setInvoiceId(res.data[last - 1].invoice.id)
                                             setNoVA(finality.data[0]["No Tagihan"])
                                             setModalLoading(false)

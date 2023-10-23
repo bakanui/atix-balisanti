@@ -1,7 +1,7 @@
 import React, { useState, useEffect }  from 'react'
 import axios from 'axios';
 import { apiUrl } from '../../reusable/constants'
-import { Button, Modal} from 'react-bootstrap';
+import { Button, Modal, Tabs, Tab,} from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAnchor, faCheck, faCheckCircle, faClock, faQuestion, faRefresh, faTicket, faTimes, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
@@ -13,28 +13,34 @@ import QRCode from "react-qr-code";
 import { sha256 } from 'js-sha256';
 import XMLParser from 'react-xml-parser';
 import _ from "lodash";
+import {CopyToClipboard} from 'react-copy-to-clipboard';
+import CurrencyFormat from 'react-currency-format';
 
 const Transaction = () => {
     const { invoice_id } = useParams();
     const [detail_invoice, setDetailInvoice] = useState({
         status: 0,
-        qrValue: ''
+        qrValue: null
     });
     const [detail_keberangkatan, setKeberangkatan] = useState();
     const [detail_penumpang, setPenumpang] = useState([]);
     const [detail_payment, setDataDetailPayment] = useState();
     const [modal_loading, setModalLoading] = useState(false) 
     const [modalInfo, setModalInfo] = useState(false) 
-    
+    const [modalInfo2, setModalInfo2] = useState(false) 
+    const [copy, setCopy] = useState(false)
+    const [no_va, setNoVa] = useState(0);
+    const [total, setTotal] = useState("0.00");
+
     useEffect(() => {
         fetchFirst()
         // if(detail_invoice.status === 0){
         //     let interval = setInterval(() => {
         //         fetchAuto()
-        //     }, 30000);
+        //     }, 60000);
         //     return () => clearInterval(interval);
         // }
-        // eslint-disable-next-line
+        //eslint-disable-next-line
     }, [])
 
     const fetchFirst = async () => {
@@ -42,8 +48,9 @@ const Transaction = () => {
         await axios.get(apiUrl + 'penumpang/get-invoice?id_invoice='+invoice_id)
         .then((jad)=> {
             setDetailInvoice(jad.data.invoice)
-            console.log(jad.data.invoice)
-            setKeberangkatan(jad.data.keberangkatans)
+            let money = jad.data.invoice.grandtotal.split(".")[0]
+            setTotal(money)
+            setKeberangkatan(jad.data.keberangkatans[0])
             setPenumpang(jad.data.penumpangs)
             if(jad.data.invoice.qrValue !== null){
                 let dataQr = {
@@ -52,25 +59,39 @@ const Transaction = () => {
                     qrValue: jad.data.invoice.qrValue,
                     hashcodeKey: sha256("9360012900000001756A01" + jad.data.invoice.qrValue + "XkKe2UXe")
                 }
+                // let dataQr = {
+                //     merchantPan: "9360012900000001756",
+                //     terminalUser: "A02",
+                //     qrValue: jad.data.invoice.qrValue,
+                //     hashcodeKey: sha256("9360012900000001756A01" + jad.data.invoice.qrValue + "XkKe2UXe")
+                // }
                 axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
                 .then((res) => {
                     console.log(res.data)
                     if(res.data.message !== undefined){
                         setDataDetailPayment(res.data)
                     }else{
-                        setDataDetailPayment(res.data)
+                        if(jad.data.invoice.status !== 1){
+                            setDataDetailPayment(res.data)
+                            if(res.data.data.status == 'Sudah Terbayar' && jad.data.invoice.status === 0){
+                                let data = {
+                                    id_invoice: invoice_id,
+                                    status: 1
+                                }
+                                axios.post(apiUrl + 'penumpang/update-status-invoice', data)
+                                .then(() => {
+                                    setModalLoading(false)  
+                                })
+                            }
+                        }else{
+                            let fauxPembayaran = {
+                                sts_bayar: jad.data.invoice.status,
+                                expired: jad.data.invoice.expiredDate
+                            }
+                            setDataDetailPayment(fauxPembayaran)
+                        }
                     }
                     setModalLoading(false)
-                    if(res.data.data.status == 'Sudah Terbayar'){
-                        let data = {
-                            id_invoice: invoice_id,
-                            status: 1
-                        }
-                        axios.post(apiUrl + 'penumpang/update-status-invoice', data)
-                        .then(() => {
-                            setModalLoading(false)  
-                        })
-                    }
                 }).catch((err) => {
                     setModalLoading(false)
                 })
@@ -78,8 +99,9 @@ const Transaction = () => {
             else{
                 let fauxPembayaran = {
                     sts_bayar: jad.data.invoice.status,
+                    expired: jad.data.invoice.expiredDate
                 }
-                console.log(fauxPembayaran)
+                setNoVa(jad.data.invoice.no_va)
                 setDataDetailPayment(fauxPembayaran)
                 setModalLoading(false)
             }
@@ -99,7 +121,7 @@ const Transaction = () => {
                 console.log(res.data)
                 setDataDetailPayment(res.data)
                 setModalLoading(false)
-                if(res.data.data.status == 'Sudah Terbayar'){
+                if(res.data.data.status == 'Sudah Terbayar' && detail_invoice.status === 0){
                     let data = {
                         id_invoice: invoice_id,
                         status: 1
@@ -144,18 +166,20 @@ const Transaction = () => {
     }
 
     const fetchAuto = async () => {
-        setModalLoading(true)
-        await axios.get(apiUrl + 'penumpang/get-invoice?id_invoice='+invoice_id)
-        .then((jad) => {
-            setDetailInvoice(jad.data.invoice)
-            setKeberangkatan(jad.data.keberangkatans)
-            setPenumpang(jad.data.penumpangs)
-            let fauxPembayaran = {
-                sts_bayar: jad.data.invoice.status,
-            }
-            setDataDetailPayment(fauxPembayaran)
-            setModalLoading(false)
-        })
+        if(detail_invoice.status === 0){
+            setModalLoading(true)
+            await axios.get(apiUrl + 'penumpang/get-invoice?id_invoice='+invoice_id)
+            .then((jad) => {
+                setDetailInvoice(jad.data.invoice)
+                setKeberangkatan(jad.data.keberangkatans)
+                setPenumpang(jad.data.penumpangs)
+                let fauxPembayaran = {
+                    sts_bayar: jad.data.invoice.status,
+                }
+                setDataDetailPayment(fauxPembayaran)
+                setModalLoading(false)
+            })
+        }
     }
 
 
@@ -176,6 +200,7 @@ const Transaction = () => {
                         <div className="order-number">#{invoice_id}</div>
                     </div>
                     {/* <h3 className='card__submsg'>Terima kasih, Selamat sampai tujuan</h3> */}
+                    {datas.qrValue ? <Button href={"https://balisanti.siwalatri.klungkungkab.go.id/confirmation-payments/" + invoice_id + "/qris-bpd"} variant="secondary" className='button-submit-accent'>Bayar Sekarang</Button> : <Button onClick={() => {setModalInfo2(true)}} variant="secondary" className='button-submit-accent'>Lihat Cara Bayar</Button>}
                 </div>
             )
         }else if(datas.status == 'Sudah Terbayar' || datas.sts_bayar == '1'){
@@ -194,6 +219,16 @@ const Transaction = () => {
                     </div>
                     {/* <h3 className='card__submsg'>Terima kasih, Selamat sampai tujuan</h3> */}
                     <Button onClick={() => {setModalInfo(true)}} variant="secondary" className='button-submit-accent'><FontAwesomeIcon  icon={faTicket} color="#fff"  style={{margin:'0 5px'}}/> Lihat Tiket</Button>
+                </div>
+            )
+        }else if(datas.status_reversal == '1'){
+            return(
+                <div className='card-inner-status'>
+                    <span className='card__expired'>
+                        <FontAwesomeIcon  icon={faTimes} className="check-payment" />
+                    </span>
+                    <h1 className='card__msg'>Pembayaran <span style={{color:'red'}}>Dibatalkan</span></h1>
+                    <h3 className='card__submsg'>Pembayaran sudah kadaluarsa</h3>
                 </div>
             )
         }else if(datas.status == 'Expired'){
@@ -348,7 +383,7 @@ const Transaction = () => {
                                                     </div>
                                                     <div className=' center-text'>
                                                         <p className='nomargin color-text-semdark'>Total Pembayaran</p>
-                                                        <p className='color-text-accent bold-text fz-18'>{detail_payment?.totalAmount ? detail_payment.totalAmount : 0}</p>
+                                                        <p className='color-text-accent bold-text fz-18'>Rp {detail_invoice?.grandtotal ? <CurrencyFormat value={total} displayType={'text'} thousandSeparator={true} /> : 0}</p>
                                                     </div>
                                                 </div>
                                         </div>
@@ -357,6 +392,136 @@ const Transaction = () => {
                     </Modal.Body>
 
                 </Modal>
+
+                <Modal
+                            show={modalInfo2}
+                            size="xl"
+                            aria-labelledby="contained-modal-title-vcenter"
+                            onHide={() => {setModalInfo2(false)}}
+                            >
+                            <Modal.Body>
+                            <Tabs
+                                defaultActiveKey={no_va !== 0 ? "internet_bpd" : "qris"}
+                                transition={false}
+                                id="noanim-tab-example"
+                                className="mb-3"
+                                style={{fontSize:'15px'}}
+                            >
+                            <Tab eventKey="internet_bpd" title="Mobile/Internet Banking Bank BPD Bali">
+                                {no_va !== 0 ? <div className="info-text-title">
+                                    <div>
+                                        <h4 className='bold-text color-text-white'>Kode Billing</h4>
+                                        <h5 className='color-text-white'>{no_va}</h5>
+                                    </div>
+                                    <CopyToClipboard text={no_va}
+                                        onCopy={() => {setCopy(true); alert('Text berhasil disalin')}}>
+                                        <button className='copy-btn'>Salin ke papan ketik</button>
+                                    </CopyToClipboard>
+                                </div> : ""}
+                                <div className="info-text-content">
+                                        <ul>
+                                            <li>Masukkan username dan password / PIN pada aplikasi Mobile / Internet Banking.</li>
+                                            <li>Pilih menu “Pembayaran”.</li>
+                                            <li>Pilih “Tiket Wisata”</li>
+                                            <li>Pilih Input Nomor ID lalu Pilih “e-Tiket Bali Santi”.</li>
+                                            <li>Input Nomor ID/tagihan {no_va === 0 ? "(Contoh: 12345678 )" : no_va}.</li>
+                                            <li>Input PIN untuk melanjutkan transaksi.</li>
+                                            <li>Selesai.</li>
+                                        </ul>
+                                </div>
+                            </Tab>
+                            <Tab eventKey="atm_gpn" title="ATM GPN Bank Lain">
+                                {no_va !== 0 ? <div className="info-text-title">
+                                    <div>
+                                        <h4 className='bold-text color-text-white'>Kode Billing</h4>
+                                        <h5 className='color-text-white'>{"1295344" + no_va}</h5>
+                                    </div>
+                                    <CopyToClipboard text={"1295344" + no_va}
+                                        onCopy={() => {setCopy(true); alert('Text berhasil disalin')}}>
+                                        <button className='copy-btn'>Salin ke papan ketik</button>
+                                    </CopyToClipboard>
+                                </div>: ""}
+                                <div className="info-text-content">
+                                        <ul>
+                                            <li>Pilih Bahasa</li>
+                                            <li>Masukkan PIN</li>
+                                            <li>Pilih “Transaksi Lainnya”</li>
+                                            <li>Pilih “Transfer”</li>
+                                            <li>Pilih “Ke Rekening Bank Lain”</li>
+                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 1295344123 )" : "1295344" + no_va} lalu tekan “Benar/Lanjut”</li>
+                                            <li>Input nominal yang ingin ditransfer sesuai tagihan yang ingin dibayar, lalu tekan "Benar/Lanjut".</li>
+                                            <li>Silakan isi atau kosongkan nomor referensi transfer kemudian tekan “Benar”</li>
+                                            <li>Muncul Layar Konfirmasi Transfer yang berisi nomor rekening tujuan bank beserta jumlah yang dibayar</li>
+                                            <li>Jika sudah benar, Tekan “Benar”</li>
+                                            <li>Selesai.</li>
+                                        </ul>
+                                </div>
+                            </Tab>
+                            <Tab eventKey="kliring_banklain" title="Kliring Bank Lain">
+                                {no_va !== 0 ? <div className="info-text-title">
+                                    <div>
+                                        <h4 className='bold-text color-text-white'>Kode Billing</h4>
+                                        <h5 className='color-text-white'>{"1295344" + no_va}</h5>
+                                    </div>
+                                    <CopyToClipboard text={"1295344" + no_va}
+                                        onCopy={() => {setCopy(true); alert('Text berhasil disalin')}}>
+                                        <button className='copy-btn'>Salin ke papan ketik</button>
+                                    </CopyToClipboard>
+                                </div>: ""}
+                                <div className="info-text-content">
+                                        <ul>
+                                            <li>Pilih “Transfer ke Bank Lain”</li>
+                                            <li>Pilih “Bank BPD Bali” sebagai bank tujuan.</li>
+                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 129534412345678 )" : "1295344" + no_va} (No Virtual Account).</li>
+                                            <li>Input nominal yang ingin ditransfer sesuai tagihan yang ingin dibayar. Mohon dipastikan nominal yang akan ditransfer sama dengan jumlah tagihan yang harus dibayar agar proses bisa berjalan sukses.</li>
+                                            <li>Lanjutkan transaksi.</li>
+                                            <li>Selesai.</li>
+                                        </ul>
+                                </div>
+                            </Tab>
+                            <Tab eventKey="internet_banklain" title="Mobile/Internet Banking Bank Lain">
+                                {no_va !== 0 ? <div className="info-text-title">
+                                    <div>
+                                        <h4 className='bold-text color-text-white'>Kode Billing</h4>
+                                        <h5 className='color-text-white'>{"5344" + no_va}</h5>
+                                    </div>
+                                    <CopyToClipboard text={"5344" + no_va}
+                                        onCopy={() => {setCopy(true); alert('Text berhasil disalin')}}>
+                                        <button className='copy-btn'>Salin ke papan ketik</button>
+                                    </CopyToClipboard>
+                                </div>: ""}
+                                <div className="info-text-content">
+                                        <ul>
+                                            <li>Login pada aplikasi Mobile/Internet Banking Anda.</li>
+                                            <li>Pilih menu “Transfer”.</li>
+                                            <li>Pilih menu “Transfer Antar Bank”.</li>
+                                            <li>Pilih bank tujuan “Bank BPD Bali”.</li>
+                                            <li>Masukkan nomor rekening tujuan {no_va === 0 ? "(Contoh: 534412345678 )" : "5344" + no_va} (No Virtual Account).</li>
+                                            <li>Input nominal yang ingin ditransfer sesuai tagihan yang ingin dibayar, lalu tekan "Benar".</li>
+                                            <li>Muncul Layar Konfirmasi Transfer yang berisi nomor rekening tujuan bank beserta jumlah yang dibayar.</li>
+                                            <li>Masukkan Password atau PIN.</li>
+                                            <li>Selesai.</li>
+                                        </ul>
+                                </div>
+                            </Tab>
+                            {no_va === 0 ? <Tab eventKey="qris" title="QRIS">
+                                <div className="info-text-content">
+                                    <ul>
+                                        <li>Scan QRCode yang tertera.</li>
+                                        <li>Cek nominal sesuai dengan total biaya pembelian tiket.</li>
+                                        <li>Input PIN Anda dan lanjutkan transaksi.</li>
+                                        <li>Transaksi Sukses.</li>
+                                        <li>Simpan Resi bukti pembayaran</li>
+                                        <li>Email Konfirmasi Pembayaran dikirimkan secara otomatis setelah pembayaran diterima</li>
+                                    </ul>
+                                </div>
+                            </Tab>: ""}
+                            </Tabs>
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Button type='button' className='btn-2-orng' onClick={() => {setModalInfo(false)}}>Tutup</Button>
+                            </Modal.Footer>
+                        </Modal>
         </main>
 
     )

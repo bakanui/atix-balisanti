@@ -77,7 +77,7 @@ const Confirmation = () => {
             await axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
             .then((res) => {
                 if(res.data.status == 'Sudah Terbayar'){
-                    // history.push('/transaction/' + invoice_id + '/status-payment')
+                    history.push('/transaction/' + invoice_id + '/status-payment')
                 }
             })
         }else{ //jika va
