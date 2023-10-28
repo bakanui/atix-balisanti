@@ -59,12 +59,6 @@ const Transaction = () => {
                     qrValue: jad.data.invoice.qrValue,
                     hashcodeKey: sha256("9360012900000001756A01" + jad.data.invoice.qrValue + "XkKe2UXe")
                 }
-                // let dataQr = {
-                //     merchantPan: "9360012900000001756",
-                //     terminalUser: "A02",
-                //     qrValue: jad.data.invoice.qrValue,
-                //     hashcodeKey: sha256("9360012900000001756A01" + jad.data.invoice.qrValue + "XkKe2UXe")
-                // }
                 axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
                 .then((res) => {
                     console.log(res.data)
@@ -96,14 +90,41 @@ const Transaction = () => {
                     setModalLoading(false)
                 })
             }
-            else{
-                let fauxPembayaran = {
-                    sts_bayar: jad.data.invoice.status,
-                    expired: jad.data.invoice.expiredDate
-                }
-                setNoVa(jad.data.invoice.no_va)
-                setDataDetailPayment(fauxPembayaran)
-                setModalLoading(false)
+            else if(jad.data.invoice.no_va !== null){
+                let xmls = `
+            <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:inquiryTagihan">
+                <soapenv:Header/>
+                <soapenv:Body>
+                <urn:ws_inquiry_tagihan soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                    <username xsi:type="xsd:string">BALI_SANTI</username>
+                    <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
+                    <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
+                    <noid xsi:type="xsd:string">${jad.data.invoice.no_va}</noid>
+                </urn:ws_inquiry_tagihan>
+                </soapenv:Body>
+            </soapenv:Envelope>
+            `;
+                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,
+                {headers: {'Content-Type': 'text/xml',},})
+                .then((rest) => {
+                    console.log(rest)
+                    var xml = new XMLParser().parseFromString(rest.data); 
+                    let val = xml.children[0].children[0].children[0].value
+                    let barval = val.replace(/&quot;/g, "\"")
+                    let finality = JSON.parse(barval)
+                    setDataDetailPayment(finality.data[0])
+                    if(finality.data[0].sts_bayar == "1"  && jad.data.invoice.status === 0){
+                        let data = {
+                            id_invoice: invoice_id,
+                            status: 1
+                        }
+                        axios.post(apiUrl + 'penumpang/update-status-invoice', data)
+                        .then(() => {
+                            setModalLoading(false)  
+                        })
+                    }
+                    setModalLoading(false)
+                })
             }
         })
     }
@@ -158,6 +179,16 @@ const Transaction = () => {
                     let finality = JSON.parse(barval)
                     console.log(finality)
                     setDataDetailPayment(finality.data[0])
+                    if(finality.data[0].sts_bayar == "1"){
+                        let data = {
+                            id_invoice: invoice_id,
+                            status: 1
+                        }
+                        axios.post(apiUrl + 'penumpang/update-status-invoice', data)
+                        .then(() => {
+                            setModalLoading(false)  
+                        })
+                    }
                     setModalLoading(false)
                 })
         }else{

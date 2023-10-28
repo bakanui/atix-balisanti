@@ -92,10 +92,10 @@ const NavbarComponent = () => {
                 <Navbar.Collapse id="basic-navbar-nav" className='justify-content-end'>
                   <Nav className="menu" >
                     <Nav.Link  className="link link-theme link-arrow" href="/home">Beranda</Nav.Link>
-                    <Nav.Link  className="link link-theme link-arrow" href="#tentang">Tentang Kami</Nav.Link>
+                    <Nav.Link  className="link link-theme link-arrow" href="#jadwal">Jadwal Pelayaran</Nav.Link>
                     <Nav.Link  className="link link-theme link-arrow" href="#info">Info Pemesanan</Nav.Link>
-                    <Nav.Link  className="link link-theme link-arrow" href="#partner">Partner</Nav.Link>
                     <Nav.Link  className="link link-theme link-arrow" href="#wisata">Wisata</Nav.Link>
+                    <Nav.Link  className="link link-theme link-arrow" href="#partner">Partner</Nav.Link>
                     {/* <NavDropdown className="link link-theme link-arrow  custom-color-dropdown dropdown-menus" title="Gabung Jadi Mitra" id="basic-nav-dropdown">
                       <NavDropdown.Item href="/partners/driver">Driver</NavDropdown.Item>
                       <NavDropdown.Item href="/partners/merchant">Merchant</NavDropdown.Item>

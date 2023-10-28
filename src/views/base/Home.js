@@ -6,7 +6,7 @@ import { FormSelect, Form, Button, Col, Row } from 'react-bootstrap';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMapPin,faCalendarAlt, faMarker, faBullhorn } from '@fortawesome/free-solid-svg-icons'
+import { faMapPin,faCalendarAlt, faMarker, faBullhorn, faShip, faAnchor, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons'
 import Slider from "react-slick";
 import XMLParser from 'react-xml-parser';
 
@@ -15,7 +15,7 @@ import logoDishub from './../../assets/logo-dinas-perhubungan-png-3.png';
 import logoBPD from './../../assets/bank-bpd-bali-logo-687C6FCAC4-seeklogo.com.png';
 import logoAvs from './../../assets/logo_avs.png';
 import logoMai from './../../assets/logo_mai.png';
-import alurpemesanan from './../../assets/alurpemesanan.jpg';
+import alurpemesanan from './../../assets/putih-01.jpg';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -30,18 +30,54 @@ const Home = () => {
   const [id_zona_from, setIdZonaFrom] = useState(1);
   const [id_zona_to, setIdZonaTo] = useState(0);
   const [data_tujuan, setDataTujuan] = useState([]);
+  const [data_jadwal, setDataJadwal] = useState([]);
   const [url_book, setUrlBook] = useState();
   let tomorrow = new Date()
   tomorrow.setDate(today.getDate() + 1)
   const [startDate, setStartDate] = useState(today)
   const [wisatas, setWisata] = useState([]);
   const [pengumumans, setPengumuman] = useState([]);
+
+  const settingsWisata = {
+    arrows: false,
+    dots: false,
+    infinite: true,
+    fade: true,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    speed: 3000,
+    autoplaySpeed: 3000,
+  };
+  const settings = {
+    arrows: false,
+    dots: false,
+    infinite: true,
+    slidesToShow: 4,
+    slidesToScroll: 1,
+    vertical: true,
+    autoplay: true,
+    speed: 2000,
+    autoplaySpeed: 2000,
+    verticalSwiping: true,
+    pauseOnHover: true
+  };
+
+  const getBadge = (status)=>{
+    switch (status) {
+      case 'Berlayar': return 'success'
+      case 'Sandar': return 'secondary'
+      case 'Persiapan': return 'warning'
+      default: return 'primary'
+    }
+  }
   
   const fetchDataTujuan = async (id_zona_from) => {
     const jadwal = axios.get(apiUrl + 'jadwal_keberangkatan/get-zona-akhir?zona_awal=' + id_zona_from)
+    const jad = axios.get(apiUrl + 'jadwal_keberangkatan')
     const wis = axios.get(apiUrl + 'wisata')
     const pen = axios.get(apiUrl + 'pengumuman')
-    await axios.all([jadwal, wis, pen]).then(axios.spread(function(res, wisa, peng) {
+    await axios.all([jadwal, wis, pen, jad]).then(axios.spread(function(res, wisa, peng, ja) {
       if(res.data.length !== 0){
         setIdZonaTo(res.data[0].id_zona)
         handleRemoveOp()
@@ -49,6 +85,7 @@ const Home = () => {
         setIdZonaTo(0)
       }
       setDataTujuan(res.data)
+      setDataJadwal(ja.data)
       setWisata(wisa.data.data.wisatas)
       setPengumuman(peng.data.data.pengumumans)
     }));
@@ -151,12 +188,38 @@ const Home = () => {
 
   return (
     <main className="padd-components">
-          <div className='blue-zone-bg-conts r-16wqof' >
+          <div className='blue-zone-bg-conts r-16wqof'>
             <div className='cntr-text-blue'>
                 <h4>Pesan Tiket Penyeberangan Resmi Online di sini</h4>
                 <p>Reservasi tiket kapal online dengan harga spesial, jadwal lengkap, dan kerjasama dengan armada resmi di Bali.</p>
             </div>
           </div>
+
+          {/* <div className='slick-for-wisatas'>
+            <Slider {...settingsWisata}>
+                {
+                  wisatas.map((data,index) => {
+                    return(
+                      // <div key={index} className='card-slider'>
+                      //   <img src={data.path} alt={data.judul} title={data.judul} style={{maxHeight:'450px',borderRadius:'5px',width:'100%'}} /> 
+                      //   <div className="CCzVr">
+                      //       <span className="hbFQhX" data-qa-id="title">{data.judul}</span>
+                      //       <span className="csca" data-qa-id="title">{data.deskripsi}</span>
+                      //   </div>
+                      // </div>
+                      <div key={index} className='blue-zone-bg-conts r-16wqof' style={{ 
+                        backgroundImage: `url('${data.path}')`
+                      }}>
+                        <div className='cntr-text-blue'>
+                            <h4>Pesan Tiket Penyeberangan Resmi Online di sini</h4>
+                            <p>Reservasi tiket kapal online dengan harga spesial, jadwal lengkap, dan kerjasama dengan armada resmi di Bali.</p>
+                        </div>
+                      </div>
+                    )
+                  })
+                }
+            </Slider>
+          </div> */}
 
           <div className='r-axzv8h routes-container-md css-1dbjc4n'  style={{zIndex:4}}>
               <div className='css-1dbjc4n r-1jgb5lz r-uwe93p'>
@@ -218,16 +281,60 @@ const Home = () => {
 
 
 
-          <div className='center-container' style={{marginTop:'1rem'}} id="tentang">
+          <div className='center-container' style={{marginTop:'1rem'}} id="jadwal">
               <div className='aboutus-components-core content-core-container'>
                     <div className='title-core'>
-                          <span>BALI SANTI</span>
+                          <span>JADWAL PELAYARAN</span>
                     </div>
-                    <div className='items-text'>
+                    {/* <div className='items-text'>
                     Sejak berdiri pada tahun 2021 di bawah naungan Dinas Perhubungan Kabupaten Klungkung, Bali Santi terus berfokus dalam menjalankan platform daring yang menyediakan layanan pemesanan tiket penyebrangan dengan fokus perjalanan domestik di daerah Klungkung. <br/> <br/>
                     Sebagai pihak ketiga, kami telah bekerja sama dengan berbagai macam armada kapal di daerah Klungkung dengan tujuan untuk memenuhi kebutuhan Anda saat melakukan perjalanan ke tempat tujuan! <br/> <br/>
                     Kami juga menyediakan fitur pembayaran yang fleksibel dengan kurs lokal, bahasa lokal, fitur atur pemesanan hingga cara booking yang mudah untuk semua pelanggan kami, serta tiket yang sudah Anda pesan dapat langsung dikirimkan melalui e-mail.
-                    </div>
+                    </div> */}
+                    <ul className="content scroll" style={{overflow:'hidden'}}>
+                      <Slider {...settings}>
+                        {
+                              data_jadwal.map((data,index) => {
+                                  return(
+                                    <div key={index} className="card card-schedule-public"> 
+                                        <div className="row">
+                                            <div className="col-xs-12 col-sm-12 col-md-4 col-lg-3" style={{display:'flex',alignItems:'center', justifyContent:'center'}}>
+                                                <h4 style={{fontFamily:'sans-serif',fontWeight:700, color: "black"}}>{data.jadwal}</h4>
+                                            </div>
+                                            <div className="col-xs-12 col-sm-12 col-md-8 col-lg-9">
+                                                    <div className="row-custome-tiket" style={{justifyContent:'center'}}>
+                                                        <section className="boardingPass-departur col-xs">
+                                                            <span className="section-label-child">{data.lokasi_awal}</span>
+                                                            <span className="boardingPass-departur-IATA">{data.tujuan_awal}</span>	
+                                                        </section>
+                                                        <section className="boardingPass-transport boardingPass-icon col-xs" style={{display:'flex',alignItems:'center', justifyContent:'center',flexDirection:'column'}}>
+                                                            <FontAwesomeIcon icon={faShip} />
+                                                            <span className="section-label-child">Menuju</span>
+                                                        </section>
+                                                        <section className="boardingPass-arrival col-xs ">
+                                                            <span className="section-label-child">{data.lokasi_akhir}</span>
+                                                            <span className="boardingPass-arrival-IATA">{data.tujuan_akhir}</span>	
+                                                        </section>
+                                                    </div>
+                                                    <div className="dashed-tiket"></div>
+                                                    <div className="row-custome-tiket">
+                                                            <section className="boardingPass-departur boardingPass-icon col-xs">
+                                                                <FontAwesomeIcon icon={faAnchor} />
+                                                                <span style={{color:'#555'}}> {data.nama_kapal}</span>	
+                                                            </section>
+                                                            {/* <section className="boardingPass-transport boardingPass-icon col-xs" style={{display:'flex',alignItems:'center', justifyContent:'center',flexDirection:'row'}}>
+                                                                <FontAwesomeIcon icon={faMapMarkerAlt} style={{marginRight:'2px'}} />
+                                                                <CBadge className="badge-custom" color={getBadge(data.status)}> {data.status}</CBadge>
+                                                            </section> */}
+                                                    </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                  )
+                              })
+                        }
+                        </Slider>
+                    </ul>
               </div>              
           </div>
 
@@ -242,6 +349,34 @@ const Home = () => {
                           </div>
                     </div>    
                 </div>
+          </div>
+
+          <div className='center-container' style={{marginTop:'2rem'}} id="wisata">
+                      <div className='aboutus-components-core content-core-container'>
+                          <div className='title-core'>
+                                <span>Wisata</span>
+                          </div>
+                          <Row>
+                          <div className='slick-for-wisatas'>
+                            <Slider {...settingsWisata}>
+                                {
+                                  wisatas.map((data,index) => {
+                                    return(
+                                      <div key={index} className='card-slider'>
+                                        <img src={data.path} alt={data.judul} title={data.judul} style={{maxHeight:'450px',borderRadius:'5px',width:'100%'}} /> 
+                                        <div className="CCzVr">
+                                            <span className="hbFQhX" data-qa-id="title">{data.judul}</span>
+                                            <span className="csca" data-qa-id="title">{data.deskripsi}</span>
+                                        </div>
+                                      </div>
+                                    )
+                                  })
+                                }
+                            </Slider>
+                          </div>
+
+                          </Row>
+                    </div>    
           </div>
 
           <div className='center-container' style={{marginTop:'2rem'}} id="partner">
@@ -272,29 +407,6 @@ const Home = () => {
                           </Col>
                     </Row>
               </div>              
-          </div>
-          
-         
-          <div className='center-container' style={{marginTop:'2rem'}} id="wisata">
-                      <div className='aboutus-components-core content-core-container'>
-                          <div className='title-core'>
-                                <span>Wisata</span>
-                          </div>
-                          <Row>
-                            {
-                                  wisatas.map((data,index) => {
-                                          return(
-                                            <Col key={index} xs="12" sm="6" md="3" lg="3" className='core-card-partner'>
-                                              <div className='card card-wisatas '>
-                                                  <img className='img-responsive' src={data.path} alt={data.judul} title={data.judul}></img>
-                                                  <div><p style={{fontFamily:'sans-serif',fontWeight:700, color:'#454545', margin:'5px 0', textAlign:'center'}}>{data.judul}</p></div>
-                                              </div>
-                                            </Col>
-                                          )
-                                  })
-                              }
-                          </Row>
-                    </div>    
           </div>
 
           <div className='center-container' style={{marginTop:'2rem'}} id="pengumuman">

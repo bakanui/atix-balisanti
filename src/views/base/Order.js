@@ -335,7 +335,7 @@ const Order = () => {
         setModal(false)
         console.log(ultimate_post)
         // console.log(total_pay)
-       
+        let invoice_id = ''
             setModalLoading(true)
             axios.post(apiUrl + 'penumpang-group', ultimate_post)
             .then((res) => {
@@ -372,6 +372,7 @@ const Order = () => {
                             console.log(last)
                         }
                         if(res.data[last - 1]){ //JIKA INVOICE BERHASIL DIGENERATE
+                            invoice_id = res.data[last - 1].invoice.id
                             if(payment_id == 2){ // PAYMENT QRIS BPD
                                 let data_generate = {
                                     merchantPan: "9360012900000001756",
@@ -421,7 +422,18 @@ const Order = () => {
                                             .then(() => {
                                                 // window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/qris-bpd"
                                                 setModalLoading(false)
-                                            })
+                                            }).catch((error) => {
+                                                console.log(error)
+                                                    toast.error('Terjadi kesalahan pada internal sistem, Mohon coba beberapa saat lagi!', {
+                                                        position: "top-right",
+                                                        autoClose: 5000,
+                                                        hideProgressBar: false,
+                                                        closeOnClick: true,
+                                                        pauseOnHover: true,
+                                                        draggable: true,
+                                                        progress: undefined,
+                                                    });
+                                                })
                                             setModalLoading(false)
                                         }else{
                                                 toast.error(rest.data.message + ' Mohon coba beberapa saat lagi!', {
@@ -446,6 +458,7 @@ const Order = () => {
                                             draggable: true,
                                             progress: undefined,
                                         });
+                                        setModalLoading(false)
                                     })
                             }else{ // PAYMENT VA BPD
                                 let billNumber = pen.data[0].kode_booking
@@ -506,22 +519,62 @@ const Order = () => {
                                         code: finality.code,
                                         data: JSON.stringify(finality.data),
                                         message: finality.message,
-                                        status: finality.status
+                                        status: finality.status,
+                                        invoice_id: invoice_id
                                     }
                                     let data_update = {
-                                        id_invoice : res.data[last - 1].invoice.id,
+                                        id_invoice : invoice_id,
                                         bill_number : finality.data[0].recordId,
                                         no_va : billNumber.toString(),
-                                        status: 0,
+                                        status: 0
                                     }
-                                    axios.post(apiUrl+'penumpang/update-invoice', data_update , header)
-                                    .then(() => {
+                                    if(finality.code === "00"){
+                                        axios.post(apiUrl+'penumpang/update-invoice', data_update , header)
+                                        .then(() => {
+                                            axios.post(apiUrl+'logs/va-bpd', super_finality, header)
+                                            .then(() => {
+                                                setInvoiceId(invoice_id)
+                                                setNoVA(finality.data[0]["No Tagihan"])
+                                                setModalLoading(false)
+                                                setModalInfo(true)
+                                            }).catch((error) => {
+                                                console.log(error)
+                                                    toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
+                                                        position: "top-right",
+                                                        autoClose: 5000,
+                                                        hideProgressBar: false,
+                                                        closeOnClick: true,
+                                                        pauseOnHover: true,
+                                                        draggable: true,
+                                                        progress: undefined,
+                                                    });
+                                                    setModalLoading(false)
+                                                })
+                                        }).catch(() => {
+                                            toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
+                                                position: "top-right",
+                                                autoClose: 5000,
+                                                hideProgressBar: false,
+                                                closeOnClick: true,
+                                                pauseOnHover: true,
+                                                draggable: true,
+                                                progress: undefined,
+                                            });
+                                            setModalLoading(false)
+                                        })
+                                    }else{
                                         axios.post(apiUrl+'logs/va-bpd', super_finality, header)
                                         .then(() => {
-                                            setInvoiceId(res.data[last - 1].invoice.id)
-                                            setNoVA(finality.data[0]["No Tagihan"])
+                                            toast.error(finality.message + ', Mohon coba beberapa saat lagi!', {
+                                                position: "top-right",
+                                                autoClose: 5000,
+                                                hideProgressBar: false,
+                                                closeOnClick: true,
+                                                pauseOnHover: true,
+                                                draggable: true,
+                                                progress: undefined,
+                                            });
                                             setModalLoading(false)
-                                            setModalInfo(true)
                                         }).catch((error) => {
                                             console.log(error)
                                                 toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
@@ -533,21 +586,19 @@ const Order = () => {
                                                     draggable: true,
                                                     progress: undefined,
                                                 });
+                                                setModalLoading(false)
                                             })
-                                    }).catch((error) => {
-                                        toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
-                                            position: "top-right",
-                                            autoClose: 5000,
-                                            hideProgressBar: false,
-                                            closeOnClick: true,
-                                            pauseOnHover: true,
-                                            draggable: true,
-                                            progress: undefined,
-                                        });
-                                    })
+                                    }
                                 })
-                                .catch((error) => {
-                                    toast.error('Terjadi kesalahan pada generate VA BPD, Mohon coba beberapa saat lagi!', {
+                                .catch(() => {
+                                    let message = "Terjadi kesalahan, Mohon coba beberapa saat lagi!"
+                                    let super_finality = {
+                                        code: "20",
+                                        data: "[]",
+                                        message: message,
+                                        status: 0
+                                    }
+                                    toast.error(message + ', Mohon coba beberapa saat lagi!', {
                                         position: "top-right",
                                         autoClose: 5000,
                                         hideProgressBar: false,
@@ -555,7 +606,24 @@ const Order = () => {
                                         pauseOnHover: true,
                                         draggable: true,
                                         progress: undefined,
-                                    });
+                                    })
+                                    axios.post(apiUrl+'logs/va-bpd', super_finality, header)
+                                        .then(() => {
+                                            setModalLoading(false)
+                                        }).catch((error) => {
+                                            console.log(error)
+                                                toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
+                                                    position: "top-right",
+                                                    autoClose: 5000,
+                                                    hideProgressBar: false,
+                                                    closeOnClick: true,
+                                                    pauseOnHover: true,
+                                                    draggable: true,
+                                                    progress: undefined,
+                                                });
+                                                setModalLoading(false)
+                                            })
+                                    setModalLoading(false)
                                 })
                             }        
                         }else{
@@ -569,6 +637,7 @@ const Order = () => {
                                 draggable: true,
                                 progress: undefined,
                             });
+                            setModalLoading(false)
                         }
                     })
                 }))
@@ -584,6 +653,7 @@ const Order = () => {
                     draggable: true,
                     progress: undefined,
                 });
+                setModalLoading(false)
             })
 
     }
