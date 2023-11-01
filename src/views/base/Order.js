@@ -375,12 +375,12 @@ const Order = () => {
                             invoice_id = res.data[last - 1].invoice.id
                             if(payment_id == 2){ // PAYMENT QRIS BPD
                                 let data_generate = {
-                                    merchantPan: "9360012900000001756",
-                                    terminalUser: "A01",
+                                    merchantPan: res.data[last - 1].invoice.merchantPan,
+                                    terminalUser: res.data[last - 1].invoice.terminalUser,
                                     merchantName : res.data[last - 1].invoice.nama_armada,
                                     amount : res.data[last - 1].invoice.grandtotal,
                                     billNumber : res.data[last - 1].invoice.id,
-                                    hashcodeKey: sha256("9360012900000001756A01" + res.data[last - 1].invoice.id + "XkKe2UXe"),
+                                    hashcodeKey: sha256(res.data[last - 1].invoice.merchantPan + res.data[last - 1].invoice.terminalUser + res.data[last - 1].invoice.id + res.data[last - 1].invoice.passcode),
                                     email : res.data[last - 1].invoice.email,
                                     customerName : res.data[0].penumpang.nama_penumpang,
                                     operatorName : res.data[last - 1].invoice.nama_armada,
@@ -420,10 +420,9 @@ const Order = () => {
                                             }
                                             axios.post(apiUrl+'penumpang/update-invoice', data_update, header)
                                             .then(() => {
-                                                // window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/qris-bpd"
+                                                window.location.href = "/confirmation-payments/"+res.data[last - 1].invoice.id+"/qris-bpd"
                                                 setModalLoading(false)
                                             }).catch((error) => {
-                                                console.log(error)
                                                     toast.error('Terjadi kesalahan pada internal sistem, Mohon coba beberapa saat lagi!', {
                                                         position: "top-right",
                                                         autoClose: 5000,
@@ -448,7 +447,6 @@ const Order = () => {
                                                 setModalLoading(false)
                                         }
                                 }).catch((error) => {
-                                    console.log(error)
                                         toast.error('Terjadi kesalahan pada internal sistem, Mohon coba beberapa saat lagi!', {
                                             position: "top-right",
                                             autoClose: 5000,
@@ -538,7 +536,6 @@ const Order = () => {
                                                 setModalLoading(false)
                                                 setModalInfo(true)
                                             }).catch((error) => {
-                                                console.log(error)
                                                     toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
                                                         position: "top-right",
                                                         autoClose: 5000,
