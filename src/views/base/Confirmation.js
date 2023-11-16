@@ -12,6 +12,7 @@ import ReactLoading from 'react-loading';
 import _ from "lodash";
 import QRCode from "react-qr-code";
 import logoQris from './../../assets/iconQris.png';
+import bpdFull from './../../assets/bpdbalifull.png';
 import logoGpn from './../../assets/gpn-logo.png';
 import topleft from './../../assets/topleftqris.png';
 import btmright from './../../assets/btmrightqris.png';
@@ -125,27 +126,21 @@ const Confirmation = () => {
                             if(payment_method == 'qris-bpd'){
                                 return(
                                         <div className='flex-all-center' style={{flexDirection:'column'}}>
-                                           
-                                            <div className='card core-card-payment' style={{padding:'0px'}} >
-                                                <div className='header-gpn-qris greenbg' style={{padding:'1rem'}}>
-                                                            <div className='logo-side-cov side-left-bpd'>
-                                                                <img className='img-responsive' src={logoBPD}></img>
-                                                            </div>
-                                                            <div className='logo-side-cov'>
-                                                                <h2 className='bpd-fonts'>BANK BPD BALI</h2>
-                                                            </div>
-                                                            <div className='logo-side-cov side-right'>
-                                                            </div>
+                                            <div className='core-card-payment' style={{padding:'0px'}} >
+                                                <div className='header-gpn-qris greenbg all-border' style={{padding:'1rem'}}>
+                                                    <img className='img-responsive' style={{maxWidth: '360px'}} src={bpdFull}></img>
                                                 </div>
-                                                <div className='header-gpn-qris' style={{padding:'1rem'}}>
-                                                            <div className='logo-side-cov side-left'>
-                                                                    <img className='img-responsive' src={logoQris}></img>
-                                                            </div>
-                                                            <div className='logo-side-cov side-right'>
-                                                                <img className='img-responsive' src={logoGpn}></img>
-                                                            </div>
+                                                <div className='header-gpn-qris' style={{padding:'1rem', backgroundColor: '#f4f4f4'}}>
                                                 </div>
-                                                <div className='bg-compontent-standartqris'>
+                                                <div className='card-qris header-gpn-qris' style={{padding:'1rem'}}>
+                                                    <div className='logo-side-cov side-left'>
+                                                            <img className='img-responsive' src={logoQris}></img>
+                                                    </div>
+                                                    <div className='logo-side-cov side-right'>
+                                                        <img className='img-responsive' src={logoGpn}></img>
+                                                    </div>
+                                                </div>
+                                                <div className='card-qris-bottom bg-compontent-standartqris'>
                                                     <img src={topleft} className="topLeftqrissty"></img>
                                                     <p className='paysembig' style={{margin:'0'}}>
                                                         {merchant_name ? merchant_name : 'MH Dev'}
