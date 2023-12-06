@@ -143,7 +143,7 @@ const Confirmation = () => {
                                                 <div className='card-qris-bottom bg-compontent-standartqris'>
                                                     <img src={topleft} className="topLeftqrissty"></img>
                                                     <p className='paysembig' style={{margin:'0'}}>
-                                                        {merchant_name ? merchant_name : 'MH Dev'}
+                                                        {merchant_name ? merchant_name : 'Bali Santi'}
                                                     </p>
                                                     <img src={btmright} className="btmrightqrissty" style={{marginBottom:'10px'}}></img>
                                                     <span style={{color:'#696969',fontSize:'14px', marginBottom:'20px', textAlign:'center'}}>NMID: {nmid}</span>

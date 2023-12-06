@@ -198,12 +198,12 @@ const Order = () => {
 
 
     const [inputList, setInputList] = useState([
-        {nama:'', jenis_kelamin:0, tiket_data:[], no_identitas:0, harga_tiket:0, free_pass:0, catatan:''}
+        {nama:'', jenis_kelamin:0, tiket_data:[], no_identitas:0, harga_tiket:0, free_pass:0, catatan:'', no_telepon:0}
       ])
   
       const handleAddFields = () => {
         const values = [...inputList];
-        values.push({nama:'', jenis_kelamin:0, tiket_data:[], no_identitas:0, harga_tiket:0, catatan:''})
+        values.push({nama:'', jenis_kelamin:0, tiket_data:[], no_identitas:0, harga_tiket:0, catatan:'', no_telepon:0})
         setInputList(values);
       };
   
@@ -282,6 +282,7 @@ const Order = () => {
                 alamat: form.get('alamat'),
                 status_verif:0,
                 harga_tiket: harga,
+                no_telepon: form.get('no_telepon'),
                 catatan: res.catatan,
                 freepass: 0,
                 payment_method: 'transfer'
@@ -333,15 +334,13 @@ const Order = () => {
     
     const pushToPayment = () => {
         setModal(false)
-        console.log(ultimate_post)
-        // console.log(total_pay)
         let invoice_id = ''
             setModalLoading(true)
             axios.post(apiUrl + 'penumpang-group', ultimate_post)
             .then((res) => {
                 let loginer = {
-                    email: "masadi@gmail.com",
-                    password: "cobatebak"
+                    email: "admin@gmail.com",
+                    password: "password"
                 }
                 axios.post('https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api/login', loginer)
                 .then((log => {
@@ -352,6 +351,7 @@ const Order = () => {
                             nama_penumpang: u.nama_penumpang,
                             no_identitas: String(u.no_identitas),
                             jenis_kelamin: String(u.jenis_kelamin),
+                            no_telepon: String(u.no_telepon),
                             email: u.email
                         })
                     })
@@ -369,7 +369,6 @@ const Order = () => {
                         let last = res.data.length
                         if (res.data[last - 1].ditlala){
                             last = last - 1
-                            console.log(last)
                         }
                         if(res.data[last - 1]){ //JIKA INVOICE BERHASIL DIGENERATE
                             invoice_id = res.data[last - 1].invoice.id
@@ -386,12 +385,12 @@ const Order = () => {
                                     operatorName : res.data[last - 1].invoice.nama_armada,
                                 }
                                 // let data_generate = {
-                                //     merchantPan: "9360012900000001756",
-                                //     terminalUser: "A01",
+                                //     merchantPan: res.data[last - 1].invoice.merchantPan,
+                                //     terminalUser: res.data[last - 1].invoice.terminalUser,
                                 //     merchantName : res.data[last - 1].invoice.nama_armada,
+                                //     hashcodeKey: sha256(res.data[last - 1].invoice.merchantPan + res.data[last - 1].invoice.terminalUser + "11473" + res.data[last - 1].invoice.passcode),
                                 //     amount : res.data[last - 1].invoice.grandtotal,
-                                //     billNumber : "628",
-                                //     hashcodeKey: sha256("9360012900000001756A01" + "628" + "XkKe2UXe"),
+                                //     billNumber : "11473",
                                 //     email : res.data[last - 1].invoice.email,
                                 //     customerName : res.data[0].penumpang.nama_penumpang,
                                 //     operatorName : res.data[last - 1].invoice.nama_armada,
@@ -409,14 +408,18 @@ const Order = () => {
                                             localStorage.setItem('merchant_name', JSON.stringify(res.data[last - 1].invoice.nama_armada))
                                             let data_update = {
                                                 id_invoice : res.data[last - 1].invoice.id,
-                                                bill_number : rest.data.billNumber,
-                                                qrvalue : rest.data.qrValue,
-                                                expiredDate : rest.data.expiredDate,
-                                                nmid : rest.data.nmid,
                                                 nns: '93600129',
                                                 trxId: rest.data.trxId,
                                                 referenceNumber: rest.data.referenceNumber,
-                                                status: 0
+                                                status: 0,
+                                                productCode: rest.data.productCode,
+                                                qrvalue : rest.data.qrValue,
+                                                nmid : rest.data.nmid,
+                                                merchantName : rest.data.merchantName,
+                                                expiredDate : rest.data.expiredDate,
+                                                amount : rest.data.amount,
+                                                totalAmount : rest.data.totalAmount,
+                                                bill_number : rest.data.billNumber,
                                             }
                                             axios.post(apiUrl+'penumpang/update-invoice', data_update, header)
                                             .then(() => {
@@ -781,13 +784,21 @@ const Order = () => {
                                                     </Col>
                                                   </Row>
                                                   <Row style={{ marginTop:'1rem'}} >
-                                                    <Col xs="12" md="6">
+                                                        <Col xs="12" md="6">
                                                             <FormLabel htmlFor="nameLabel">No Identitas (No KTP/No Paspor)</FormLabel>
                                                             <input className="form-control" id={"nameInput"} placeholder="No Identitas"
                                                             onChange={e => {handleInputChange(e, index); }}
                                                             name="no_identitas" value={data.no_identitas} required/>
                                                         </Col>
                                                         <Col xs="12" md="6">
+                                                            <FormLabel htmlFor="nameLabel">No Telepon</FormLabel>
+                                                            <input className="form-control" id={"nameInput"} placeholder="No Telepon"
+                                                            onChange={e => {handleInputChange(e, index); }}
+                                                            name="no_telepon" value={data.no_telepon} required/>
+                                                        </Col>
+                                                  </Row>
+                                                  <Row style={{ marginTop:'1rem'}} >
+                                                        <Col xs="12" md="12">
                                                             <FormLabel htmlFor="nameLabel">Catatan</FormLabel>
                                                             <input className="form-control" id={"nameInput"} placeholder="...."
                                                             onChange={e => {handleInputChange(e, index);  }}

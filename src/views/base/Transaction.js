@@ -54,10 +54,10 @@ const Transaction = () => {
             setPenumpang(jad.data.penumpangs)
             if(jad.data.invoice.qrValue !== null){
                 let dataQr = {
-                    merchantPan: "9360012900000001756",
-                    terminalUser: "A01",
+                    merchantPan: jad.data.invoice.armada.merchantPan,
+                    terminalUser: jad.data.invoice.armada.terminalUser,
                     qrValue: jad.data.invoice.qrValue,
-                    hashcodeKey: sha256("9360012900000001756A01" + jad.data.invoice.qrValue + "XkKe2UXe")
+                    hashcodeKey: sha256(jad.data.invoice.armada.merchantPan + jad.data.invoice.armada.terminalUser + jad.data.invoice.qrValue + jad.data.invoice.armada.passcode)
                 }
                 axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
                 .then((res) => {
