@@ -342,7 +342,11 @@ const Order = () => {
                     email: "admin@gmail.com",
                     password: "password"
                 }
-                axios.post('https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api/login', loginer)
+                let linkAp = 'https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api'
+                if(res.data[last - 1].invoice.nama_armada === "Gangga Express"){
+                    linkAp = 'https://maiharta.ddns.net:3100/http://103.139.193.10:3001/api'
+                }
+                axios.post(linkAp + '/login', loginer)
                 .then((log => {
                     let penumpangs = []
                     ultimate_post.data.map((u) => {
@@ -361,7 +365,7 @@ const Order = () => {
                         collect: total_pay,
                         penumpangs: penumpangs
                     }
-                    axios.post('https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api/penjualan', penumpang, {
+                    axios.post(linkAp + '/penjualan', penumpang, {
                         headers: {
                             'Authorization': 'bearer ' + log.data.authorisation.token
                         }, })

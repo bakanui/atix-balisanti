@@ -231,7 +231,7 @@ const Transaction = () => {
                         <div className="order-number">#{invoice_id}</div>
                     </div>
                     {/* <h3 className='card__submsg'>Terima kasih, Selamat sampai tujuan</h3> */}
-                    {datas.qrValue ? <Button href={"https://balisanti.siwalatri.klungkungkab.go.id/confirmation-payments/" + invoice_id + "/qris-bpd"} variant="secondary" className='button-submit-accent'>Bayar Sekarang</Button> : <Button onClick={() => {setModalInfo2(true)}} variant="secondary" className='button-submit-accent'>Lihat Cara Bayar</Button>}
+                    {datas.qrValue ? <Button href={"https://tiket.siwalatri.klungkungkab.go.id/confirmation-payments/" + invoice_id + "/qris-bpd"} variant="secondary" className='button-submit-accent'>Bayar Sekarang</Button> : <Button onClick={() => {setModalInfo2(true)}} variant="secondary" className='button-submit-accent'>Lihat Cara Bayar</Button>}
                 </div>
             )
         }else if(datas.status == 'Sudah Terbayar' || datas.sts_bayar == '1'){
