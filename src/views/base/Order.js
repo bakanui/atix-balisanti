@@ -342,6 +342,10 @@ const Order = () => {
                     email: "admin@gmail.com",
                     password: "password"
                 }
+                let last = res.data.length
+                if (res.data[last - 1].ditlala){
+                    last = last - 1
+                }
                 let linkAp = 'https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api'
                 if(res.data[last - 1].invoice.nama_armada === "Gangga Express"){
                     linkAp = 'https://maiharta.ddns.net:3100/http://103.139.193.10:3001/api'
@@ -370,10 +374,6 @@ const Order = () => {
                             'Authorization': 'bearer ' + log.data.authorisation.token
                         }, })
                     .then((pen)=>{
-                        let last = res.data.length
-                        if (res.data[last - 1].ditlala){
-                            last = last - 1
-                        }
                         if(res.data[last - 1]){ //JIKA INVOICE BERHASIL DIGENERATE
                             invoice_id = res.data[last - 1].invoice.id
                             if(payment_id == 2){ // PAYMENT QRIS BPD
