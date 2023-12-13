@@ -54,11 +54,11 @@ const Booking = () => {
     const fetchData = async (id, id2, date, filter, id_armada_fill) => {
         setLoad(true)
         let query = 'jadwal_keberangkatan/get-list-jadwalrute?awal='+id+'&akhir='+id2+'&tanggal='+date;
-        // if(filter){
-        //     if(id_armada_fill !== 0){
-        //         query = query + '&id_armada='+id_armada_fill
-        //     }
-        // }
+        if(filter){
+            if(id_armada_fill !== 0){
+                query = query + '&id_armada='+id_armada_fill
+            }
+        }
         await axios.get(apiUrl + query)
         .then((res) => {
             setLoad(false)

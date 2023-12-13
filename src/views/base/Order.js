@@ -147,38 +147,13 @@ const Order = () => {
         const tiket = axios.get(apiUrl + 'jadwal_keberangkatan/view/tiket/'+ id_jadwal)
         const jenis = axios.get(apiUrl + 'jenis_penumpang')
         const tujuan = axios.get(apiUrl + 'jenis_tujuan')
-        await axios.all([jadwal, tiket, jenis, tujuan]).then(axios.spread(function(jad, tik, jen, tuj) {
+        const echotest = axios.get(apiUrl + 'webservice/va/echo-test')
+        await axios.all([jadwal, tiket, jenis, tujuan, echotest]).then(axios.spread(function(jad, tik, jen, tuj, finality) {
             setDetailJadwal(jad.data)
             setTikets(tik.data)
             setJenisPenumpang(jen.data)
             setJenisTujuan(tuj.data)
-            let xmls = `
-            <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:echoTest">
-                <soapenv:Header/>
-                <soapenv:Body>
-                <urn:ws_echo_test soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-                    <username xsi:type="xsd:string">BALI_SANTI</username>
-                    <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
-                </urn:ws_echo_test>
-                </soapenv:Body>
-            </soapenv:Envelope>
-            `;
-            axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls, {headers: {'Content-Type': 'text/xml',},})
-            .then((r) => {
-                var xml = new XMLParser().parseFromString(r.data); 
-                let val = xml.children[0].children[0].children[0].value
-                let barval = val.replace(/&quot;/g, "\"")
-                let finality = JSON.parse(barval)
-                let super_finality = {
-                    code: finality.code,
-                    data: JSON.stringify(finality.data),
-                    message: finality.message,
-                    status: finality.status
-                }
-                setStatusVA(finality.status)
-                console.log(finality)
-                axios.post(apiUrl+'logs/va-bpd', super_finality, header)
-            })
+            setStatusVA(finality.status)
         })).catch(function (error) {
             toast.error('Terjadi kesalahan pada jaringan. Silahkan coba kembali.', {
                 position: "top-right",
@@ -388,18 +363,7 @@ const Order = () => {
                                     customerName : res.data[0].penumpang.nama_penumpang,
                                     operatorName : res.data[last - 1].invoice.nama_armada,
                                 }
-                                // let data_generate = {
-                                //     merchantPan: res.data[last - 1].invoice.merchantPan,
-                                //     terminalUser: res.data[last - 1].invoice.terminalUser,
-                                //     merchantName : res.data[last - 1].invoice.nama_armada,
-                                //     hashcodeKey: sha256(res.data[last - 1].invoice.merchantPan + res.data[last - 1].invoice.terminalUser + "11473" + res.data[last - 1].invoice.passcode),
-                                //     amount : res.data[last - 1].invoice.grandtotal,
-                                //     billNumber : "11473",
-                                //     email : res.data[last - 1].invoice.email,
-                                //     customerName : res.data[0].penumpang.nama_penumpang,
-                                //     operatorName : res.data[last - 1].invoice.nama_armada,
-                                // }
-                                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/generateQrisPost',data_generate)
+                                axios.post(apiUrl + 'webservice/qris/generate' ,data_generate)
                                 .then((rest) => {
                                         if(!rest.data.errorCode){
                                             console.log(rest)
@@ -473,87 +437,34 @@ const Order = () => {
                                 }else if (res.data[0].rute[0].tujuan_akhirs.zona.lokasi === "Klungkung") {
                                     tujuan = "KLK - Pelabuhan " + res.data[0].rute[0].tujuan_akhirs.nama_dermaga
                                 }
-                                let xmls = `
-                                <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:tagihanInsert">
-                                    <soapenv:Header/>
-                                    <soapenv:Body>
-                                    <urn:ws_tagihan_insert soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-                                        <username xsi:type="xsd:string">BALI_SANTI</username>
-                                        <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
-                                        <noid xsi:type="xsd:string">${billNumber}</noid>
-                                        <nama xsi:type="xsd:string">${res.data[0].penumpang.nama_penumpang}</nama>
-                                        <tagihan xsi:type="xsd:double">${parseInt(res.data[last - 1].invoice.grandtotal)}</tagihan>
-                                        <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
-                                        <ket_1_val xsi:type="xsd:string">${res.data[last - 1].invoice.nama_armada}</ket_1_val>
-                                        <ket_2_val xsi:type="xsd:string">${date_book}</ket_2_val>
-                                        <ket_3_val xsi:type="xsd:string">${tujuan}</ket_3_val>
-                                        <ket_4_val xsi:type="xsd:string">${res.data[last - 1].invoice.created_at}</ket_4_val>
-                                        <ket_5_val xsi:type="xsd:string">VA - BPD Payment</ket_5_val>
-                                        <ket_6_val xsi:type="xsd:string">${inputList.length}</ket_6_val>
-                                        <ket_7_val xsi:type="xsd:string">${kepentinganPenumpangText(res.data[0].penumpang.id_tujuan)}</ket_7_val>
-                                        <ket_8_val xsi:type="xsd:string">${res.data[0].penumpang.updated_at}</ket_8_val>
-                                        <ket_9_val xsi:type="xsd:string"></ket_9_val>
-                                        <ket_10_val xsi:type="xsd:string"></ket_10_val>
-                                        <ket_11_val xsi:type="xsd:string"></ket_11_val>
-                                        <ket_12_val xsi:type="xsd:string"></ket_12_val>
-                                        <ket_13_val xsi:type="xsd:string"></ket_13_val>
-                                        <ket_14_val xsi:type="xsd:string"></ket_14_val>
-                                        <ket_15_val xsi:type="xsd:string"></ket_15_val>
-                                        <ket_16_val xsi:type="xsd:string"></ket_16_val>
-                                        <ket_17_val xsi:type="xsd:string"></ket_17_val>
-                                        <ket_18_val xsi:type="xsd:string"></ket_18_val>
-                                        <ket_19_val xsi:type="xsd:string"></ket_19_val>
-                                        <ket_20_val xsi:type="xsd:string"></ket_20_val>
-                                        <ket_21_val xsi:type="xsd:string"></ket_21_val>
-                                        <ket_22_val xsi:type="xsd:string"></ket_22_val>
-                                        <ket_23_val xsi:type="xsd:string"></ket_23_val>
-                                        <ket_24_val xsi:type="xsd:string"></ket_24_val>
-                                        <ket_25_val xsi:type="xsd:string"></ket_25_val>
-                                    </urn:ws_tagihan_insert>
-                                    </soapenv:Body>
-                                </soapenv:Envelope>
-                                `;
-                                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,
-        {headers: {'Content-Type': 'text/xml',},})
-                                .then((rest) => {
-                                    var xml = new XMLParser().parseFromString(rest.data)
-                                    let val = xml.children[0].children[0].children[0].value
-                                    let barval = val.replace(/&quot;/g, "\"")
-                                    let finality = JSON.parse(barval)
-                                    let super_finality = {
-                                        code: finality.code,
-                                        data: JSON.stringify(finality.data),
-                                        message: finality.message,
-                                        status: finality.status,
-                                        invoice_id: invoice_id
-                                    }
+                                let insert = {
+                                    billNumber: billNumber,
+                                    nama_penumpang: res.data[0].penumpang.nama_penumpang,
+                                    grandtotal: parseInt(res.data[last - 1].invoice.grandtotal),
+                                    nama_armada: res.data[last - 1].invoice.nama_armada,
+                                    date_book: date_book,
+                                    tujuan: tujuan,
+                                    created_at: res.data[last - 1].invoice.created_at,
+                                    length: inputList.length,
+                                    id_tujuan: kepentinganPenumpangText(res.data[0].penumpang.id_tujuan),
+                                    updated_at: res.data[0].penumpang.updated_at
+                                }
+                                axios.post(apiUrl+'webservice/va/tagihan-insert',insert)
+                                .then((finality) => {
+                                    console.log(finality)
                                     let data_update = {
                                         id_invoice : invoice_id,
-                                        bill_number : finality.data[0].recordId,
+                                        bill_number : finality.data.data[0].recordId,
                                         no_va : billNumber.toString(),
                                         status: 0
                                     }
-                                    if(finality.code === "00"){
+                                    if(finality.data.status === true){
                                         axios.post(apiUrl+'penumpang/update-invoice', data_update , header)
                                         .then(() => {
-                                            axios.post(apiUrl+'logs/va-bpd', super_finality, header)
-                                            .then(() => {
-                                                setInvoiceId(invoice_id)
-                                                setNoVA(finality.data[0]["No Tagihan"])
-                                                setModalLoading(false)
-                                                setModalInfo(true)
-                                            }).catch((error) => {
-                                                    toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
-                                                        position: "top-right",
-                                                        autoClose: 5000,
-                                                        hideProgressBar: false,
-                                                        closeOnClick: true,
-                                                        pauseOnHover: true,
-                                                        draggable: true,
-                                                        progress: undefined,
-                                                    });
-                                                    setModalLoading(false)
-                                                })
+                                            setInvoiceId(invoice_id)
+                                            setNoVA(finality.data.data[0]["No Tagihan"])
+                                            setModalLoading(false)
+                                            setModalInfo(true)
                                         }).catch(() => {
                                             toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
                                                 position: "top-right",
@@ -567,41 +478,19 @@ const Order = () => {
                                             setModalLoading(false)
                                         })
                                     }else{
-                                        axios.post(apiUrl+'logs/va-bpd', super_finality, header)
-                                        .then(() => {
-                                            toast.error(finality.message + ', Mohon coba beberapa saat lagi!', {
-                                                position: "top-right",
-                                                autoClose: 5000,
-                                                hideProgressBar: false,
-                                                closeOnClick: true,
-                                                pauseOnHover: true,
-                                                draggable: true,
-                                                progress: undefined,
-                                            });
-                                            setModalLoading(false)
-                                        }).catch((error) => {
-                                            console.log(error)
-                                                toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
-                                                    position: "top-right",
-                                                    autoClose: 5000,
-                                                    hideProgressBar: false,
-                                                    closeOnClick: true,
-                                                    pauseOnHover: true,
-                                                    draggable: true,
-                                                    progress: undefined,
-                                                });
-                                                setModalLoading(false)
-                                            })
+                                        toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
+                                            position: "top-right",
+                                            autoClose: 5000,
+                                            hideProgressBar: false,
+                                            closeOnClick: true,
+                                            pauseOnHover: true,
+                                            draggable: true,
+                                            progress: undefined,
+                                        });
+                                        setModalLoading(false)
                                     }
-                                })
-                                .catch(() => {
-                                    let message = "Terjadi kesalahan, Mohon coba beberapa saat lagi!"
-                                    let super_finality = {
-                                        code: "20",
-                                        data: "[]",
-                                        message: message,
-                                        status: 0
-                                    }
+                                }).catch(() => {
+                                    let message = "Terjadi kesalahan"
                                     toast.error(message + ', Mohon coba beberapa saat lagi!', {
                                         position: "top-right",
                                         autoClose: 5000,
@@ -611,22 +500,6 @@ const Order = () => {
                                         draggable: true,
                                         progress: undefined,
                                     })
-                                    axios.post(apiUrl+'logs/va-bpd', super_finality, header)
-                                        .then(() => {
-                                            setModalLoading(false)
-                                        }).catch((error) => {
-                                            console.log(error)
-                                                toast.error('Terjadi kesalahan, Mohon coba beberapa saat lagi!', {
-                                                    position: "top-right",
-                                                    autoClose: 5000,
-                                                    hideProgressBar: false,
-                                                    closeOnClick: true,
-                                                    pauseOnHover: true,
-                                                    draggable: true,
-                                                    progress: undefined,
-                                                });
-                                                setModalLoading(false)
-                                            })
                                     setModalLoading(false)
                                 })
                             }        

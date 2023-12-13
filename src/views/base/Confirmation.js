@@ -70,32 +70,22 @@ const Confirmation = () => {
            setKodeNNS(jad.data.invoice.nns)
            setNMID(jad.data.invoice.nmid)
            let dataQr = {
-            merchantPan: "9360012900000001756",
-            terminalUser: "A01",
-            qrValue: jad.data.invoice.qrValue,
-            hashcodeKey: sha256("9360012900000001756A01" + jad.data.invoice.qrValue + "XkKe2UXe")
+                merchantPan: jad.data.invoice.armada.merchantPan,
+                terminalUser: jad.data.invoice.armada.terminalUser,
+                qrValue: jad.data.invoice.qrValue,
+                hashcodeKey: sha256(jad.data.invoice.armada.merchantPan + jad.data.invoice.armada.terminalUser + jad.data.invoice.qrValue + jad.data.invoice.armada.passcode)
             }
-            await axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
+            await axios.post(apiUrl+'webservice/qris/get-transaction', dataQr)
             .then((res) => {
                 if(res.data.status == 'Sudah Terbayar'){
                     history.push('/transaction/' + invoice_id + '/status-payment')
                 }
             })
         }else{ //jika va
-            let xmls = `
-            <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:inquiryTagihan">
-                <soapenv:Header/>
-                <soapenv:Body>
-                    <urn:ws_inquiry_tagihan soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-                    <username xsi:type="xsd:string">BALI_SANTI</username>
-                    <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
-                    <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
-                    <noid xsi:type="xsd:string">${invoice_id}</noid>
-                    </urn:ws_inquiry_tagihan>
-                </soapenv:Body>
-            </soapenv:Envelope>
-            `;
-            await axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,{headers: {'Content-Type': 'text/xml',},})
+            let xmls = {
+                invoice_id: invoice_id
+            }
+            await axios.post(apiUrl+'webservice/va/inquiry-tagihan',xmls)
             .then((res) => {
                 console.log(res)
                 // setStatusPayment(res)

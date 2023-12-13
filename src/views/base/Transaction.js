@@ -59,7 +59,7 @@ const Transaction = () => {
                     qrValue: jad.data.invoice.qrValue,
                     hashcodeKey: sha256(jad.data.invoice.armada.merchantPan + jad.data.invoice.armada.terminalUser + jad.data.invoice.qrValue + jad.data.invoice.armada.passcode)
                 }
-                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
+                axios.post(apiUrl+'webservice/qris/get-transaction', dataQr)
                 .then((res) => {
                     console.log(res.data)
                     if(res.data.message !== undefined){
@@ -91,29 +91,14 @@ const Transaction = () => {
                 })
             }
             else if(jad.data.invoice.no_va !== null){
-                let xmls = `
-            <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:inquiryTagihan">
-                <soapenv:Header/>
-                <soapenv:Body>
-                <urn:ws_inquiry_tagihan soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-                    <username xsi:type="xsd:string">BALI_SANTI</username>
-                    <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
-                    <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
-                    <noid xsi:type="xsd:string">${jad.data.invoice.no_va}</noid>
-                </urn:ws_inquiry_tagihan>
-                </soapenv:Body>
-            </soapenv:Envelope>
-            `;
-                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,
-                {headers: {'Content-Type': 'text/xml',},})
-                .then((rest) => {
-                    console.log(rest)
-                    var xml = new XMLParser().parseFromString(rest.data); 
-                    let val = xml.children[0].children[0].children[0].value
-                    let barval = val.replace(/&quot;/g, "\"")
-                    let finality = JSON.parse(barval)
-                    setDataDetailPayment(finality.data[0])
-                    if(finality.data[0].sts_bayar == "1"  && jad.data.invoice.status === 0){
+                let xmls = {
+                    invoice_id: jad.data.invoice.no_va
+                }
+                setNoVa(jad.data.invoice.no_va)
+                axios.post(apiUrl+'webservice/va/inquiry-tagihan',xmls)
+                .then((finality) => {
+                    setDataDetailPayment(finality.data.data[0])
+                    if(finality.data.data[0].sts_bayar == "1"  && jad.data.invoice.status === 0){
                         let data = {
                             id_invoice: invoice_id,
                             status: 1
@@ -132,12 +117,12 @@ const Transaction = () => {
     const fetchManual = async () => {   
         if(detail_invoice.qrValue !== null){
             let dataQr = {
-                merchantPan: "9360012900000001756",
-                terminalUser: "A01",
+                merchantPan: detail_invoice.armada.merchantPan,
+                terminalUser: detail_invoice.armada.terminalUser,
                 qrValue: detail_invoice.qrValue,
-                hashcodeKey: sha256("9360012900000001756A01" + detail_invoice.qrValue + "XkKe2UXe")
+                hashcodeKey: sha256(detail_invoice.armada.merchantPan + detail_invoice.armada.terminalUser + detail_invoice.qrValue + detail_invoice.armada.passcode)
             }
-            await axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/merchant-admin/rest/openapi/getTrxBy\QrString', dataQr)
+            await axios.post(apiUrl+'webservice/qris/get-transaction', dataQr)
             .then((res) => {
                 console.log(res.data)
                 setDataDetailPayment(res.data)
@@ -156,30 +141,14 @@ const Transaction = () => {
                 setModalLoading(false)
             })
         }else if(detail_invoice.no_va !== null){
-            let xmls = `
-            <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:inquiryTagihan">
-                <soapenv:Header/>
-                <soapenv:Body>
-                <urn:ws_inquiry_tagihan soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-                    <username xsi:type="xsd:string">BALI_SANTI</username>
-                    <password xsi:type="xsd:string">hbd3q2p9b4l1s4nt1bpd8ovr</password>
-                    <instansi xsi:type="xsd:string">ETIKET_BALI_SANTI</instansi>
-                    <noid xsi:type="xsd:string">${detail_invoice.no_va}</noid>
-                </urn:ws_inquiry_tagihan>
-                </soapenv:Body>
-            </soapenv:Envelope>
-            `;
-                axios.post('https://maiharta.ddns.net:3100/http://180.242.244.3:7070/ws_bpd_payment/interkoneksi/v1/ws_interkoneksi.php',xmls,
-                {headers: {'Content-Type': 'text/xml',},})
-                .then((rest) => {
-                    console.log(rest)
-                    var xml = new XMLParser().parseFromString(rest.data); 
-                    let val = xml.children[0].children[0].children[0].value
-                    let barval = val.replace(/&quot;/g, "\"")
-                    let finality = JSON.parse(barval)
-                    console.log(finality)
-                    setDataDetailPayment(finality.data[0])
-                    if(finality.data[0].sts_bayar == "1"){
+            let xmls = {
+                invoice_id: detail_invoice.no_va
+            }
+            setNoVa(detail_invoice.no_va)
+                axios.post(apiUrl+'webservice/va/inquiry-tagihan',xmls)
+                .then((finality) => {
+                    setDataDetailPayment(finality.data.data[0])
+                    if(finality.data.data[0].sts_bayar == "1"){
                         let data = {
                             id_invoice: invoice_id,
                             status: 1
@@ -223,7 +192,7 @@ const Transaction = () => {
                         <FontAwesomeIcon  icon={faClock} className="check-payment" />
                     </span>
                     <h1 className='card__msg'>Pembayaran <span style={{color:'#dd9052'}}>{datas.status}</span></h1>
-                    <h3 className='card__submsg'>Mohon untuk menyelesaikan pembyaran, sebelum {datas.expired}</h3>
+                    <h3 className='card__submsg'>Mohon untuk menyelesaikan pembayaran, sebelum {datas.expired}</h3>
                     <br/>
                     <br/>
                     <div className="order__detail">
