@@ -28,7 +28,7 @@ const Confirmation = () => {
     const [expiredDate, setExpired] = useState();
     const [total_pay, setTotalPay] = useState();
     const [nmid, setNMID] = useState();
-    const [merchant_name, setMerchant] = useState('MH Dev');
+    const [merchant_name, setMerchant] = useState('BALI SANTI');
 
     const [modalInfo, setModalInfo] = useState(false) 
     const [status_payment, setStatusPayment] = useState() 
@@ -62,7 +62,7 @@ const Confirmation = () => {
 
         setBillNumber(jad.data.invoice.bill_number)
         setTotalPay(jad.data.invoice.grandtotal)
-        setMerchant(jad.data.invoice.armada.nama_armada)
+        setMerchant(jad.data.invoice.armada.merchantName)
         
         if(payment_method == 'qris-bpd'){ // jika qris
            setQRBpd(jad.data.invoice.qrValue.replace(/['"]+/g, ''));
