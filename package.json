@@ -1,6 +1,6 @@
 {
   "name": "atix-siwalatri",
-Ad  "version": "1.0.0",
+  "version": "1.0.0",
   "homepage": "https://tiket.siwalatri.klungkungkab.go.id",
   "private": true,
   "dependencies": {
