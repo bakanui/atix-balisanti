@@ -2,21 +2,19 @@ import React, { useState, useEffect }  from 'react'
 import axios from 'axios';
 import { apiUrl } from '../../reusable/constants'
 import '../../css/error.scss';
-import { FormSelect, Form, Button, Col, Row, FormGroup, FormLabel, Modal, Tabs, Tab,  } from 'react-bootstrap';
+import { Form, Button, Col, Row, FormGroup, FormLabel, Modal, Tabs, Tab,  } from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faAnchor, faArrowAltCircleRight, faArrowRightLong, faCalendar, faCalendarAlt, faChevronRight, faCircle, faInfoCircle, faMapPin, faPlusCircle, faShip, faTimes, faUserFriends, faUserGroup } from '@fortawesome/free-solid-svg-icons'
+import { faAnchor, faArrowRightLong, faCalendarAlt, faInfoCircle, faMapPin, faPlusCircle, faShip, faTimes, faUserGroup } from '@fortawesome/free-solid-svg-icons'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Redirect, useParams } from "react-router-dom";
 import ReactLoading from 'react-loading';
-import gangga from './../../assets/gangga.png';
 import _ from "lodash";
 import logoBPD from './../../assets/bank-bpd-bali-logo-687C6FCAC4-seeklogo.com.png';
 import logoQris from './../../assets/qris.png';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import { sha256 } from 'js-sha256';
-import XMLParser from 'react-xml-parser';
 const Order = () => {
     
     const { id_jadwal, kapasitas, date_book } = useParams();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect }  from 'react'
 import axios from 'axios';
-import { apiUrl } from '../../reusable/constants'
+import { apiUrl, helmetAppender } from '../../reusable/constants'
 import { Button, Modal, Tabs, Tab,} from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -31,6 +31,7 @@ const Transaction = () => {
     const [copy, setCopy] = useState(false)
     const [no_va, setNoVa] = useState(0);
     const [total, setTotal] = useState("0.00");
+    const [status, setStatus] = useState("Pembayaran")
 
     useEffect(() => {
         fetchFirst()
@@ -64,6 +65,7 @@ const Transaction = () => {
                     console.log(res.data)
                     if(res.data.message !== undefined){
                         setDataDetailPayment(res.data)
+                        setStatus(res.data.data.status)
                     }else{
                         if(jad.data.invoice.status !== 1){
                             setDataDetailPayment(res.data)
@@ -296,6 +298,7 @@ const Transaction = () => {
     
     return(
           <main className="padd-components">
+            {helmetAppender("Status Pembayaran")}
             <ToastContainer />
             <div className='center-container' style={{margin:'2rem 0'}}>
                     <div className='aboutus-components-core content-core-container'>

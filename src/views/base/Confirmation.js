@@ -1,6 +1,6 @@
 import React, { useState, useEffect }  from 'react'
 import axios from 'axios';
-import { apiUrl } from '../../reusable/constants'
+import { apiUrl, helmetAppender } from '../../reusable/constants'
 import { Button, Modal} from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -106,11 +106,12 @@ const Confirmation = () => {
 
     return(
         <main className="padd-components">
+            {helmetAppender("Konfirmasi Pembayaran")}
             <ToastContainer />
             <div className='center-container' style={{margin:'2rem 0'}}>
                     <div className='aboutus-components-core content-core-container'>
                           <div className='title-core'>
-                                <span>Confirmation Payment</span>
+                                <span>Konfirmasi Pembayaran</span>
                           </div>
                           {(() => {
                             if(payment_method == 'qris-bpd'){

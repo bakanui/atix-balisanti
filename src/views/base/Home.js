@@ -415,7 +415,7 @@ const Home = () => {
                   {
                     pengumumans.map((data,index) => {
                         return(
-                          <div class="alert alert-primary" role="alert" style={{whiteSpace:'pre'}}>
+                          <div className="alert alert-primary" role="alert" style={{whiteSpace:'pre'}}>
                             <FontAwesomeIcon icon={faBullhorn}  style={{margin:'0 5px'}}/> {data.deskripsi+'...'}
                           </div>
                         )

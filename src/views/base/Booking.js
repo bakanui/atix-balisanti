@@ -1,53 +1,64 @@
 import React, { useState, useEffect }  from 'react'
-import axios from 'axios';
-import { apiUrl } from '../../reusable/constants'
-import '../../css/error.scss';
-import { FormSelect, Form, Button, Col, Row, ToggleButton } from 'react-bootstrap';
-import "react-datepicker/dist/react-datepicker.css";
+import axios from 'axios'
+import { apiUrl, helmetAppender } from '../../reusable/constants'
+import '../../css/error.scss'
+import { FormSelect, Form, Button, Col, Row, ToggleButton } from 'react-bootstrap'
+import "react-datepicker/dist/react-datepicker.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAnchor, faArrowAltCircleRight, faArrowRightLong, faChevronRight, faSearch, faShip, faUserFriends, faUserGroup } from '@fortawesome/free-solid-svg-icons'
+import { format } from 'date-fns'
 
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { Link, useParams } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { Link, useParams } from "react-router-dom"
 
 import img404 from './../../assets/noresults.png'
-import ReactLoading from 'react-loading';
-import _ from "lodash";
+import ReactLoading from 'react-loading'
+import _ from "lodash"
 
 const Booking = () => {
-    const { id_from, id_to, date_book } = useParams();
-    const [datas, setDatas] = useState([]);
+    const { id_from, id_to, date_book } = useParams()
+    const [datas, setDatas] = useState([])
     const [tot, setLength] = useState(0);
     const [loading, setLoad] = useState(false)
     const [show, setShow] = useState(true)
-    const [operator_group, setOperatorGroup] = useState();
+    const [operator_group, setOperatorGroup] = useState()
     const [filter, setFilter] = useState(false)
-    const [id_armada_fill, setArmadaFill] = useState(0);
-    const [from_id, setFromId] = useState(0);
-    const [to_id, setToId] = useState(0);
-    const [isActiveId, setActiveId] = useState();
+    const [id_armada_fill, setArmadaFill] = useState(0)
+    const [from_id, setFromId] = useState(0)
+    const [to_id, setToId] = useState(0)
+    const [head, setHead] = useState("")
+    const [isActiveId, setActiveId] = useState()
 
     useEffect(() => {
         let from = 0
         let to = 0
+        let f_label = ""
+        let t_label = ""
           if(id_from == 'klungkung'){
             from = 1
+            f_label = "KLK"
           }else if(id_from == 'nusa-penida'){
             from = 2
+            f_label = "NP"
           }else if(id_from == 'sanur'){
             from = 4
+            f_label = "SNR"
           }
 
           if(id_to == 'klungkung'){
             to = 1
+            t_label = "KLK"
           }else if(id_to == 'nusa-penida'){
             to = 2
+            t_label = "NP"
           }else if(id_to == 'sanur'){
             to = 4
+            t_label = "SNR"
           }
-          setFromId(from);
-          setToId(to);
+          setFromId(from)
+          setToId(to)
+          setHead(f_label + " → " + t_label + ", " + format(date_book, 'dd MMM yyyy'))
           fetchData(from, to, date_book, filter, id_armada_fill)
     }, []);
 
@@ -102,6 +113,7 @@ const Booking = () => {
     
     return(
         <main className="padd-components">
+            {helmetAppender(head)}
              <div className='blue-zone-bg-flat'>
                 <div className='center-container' >
                     <div className='aboutus-components-core content-core-container '>
