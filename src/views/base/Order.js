@@ -1,12 +1,13 @@
 import React, { useState, useEffect }  from 'react'
 import axios from 'axios';
-import { apiUrl } from '../../reusable/constants'
+import { apiUrl, helmetAppender } from '../../reusable/constants'
 import '../../css/error.scss';
 import { Form, Button, Col, Row, FormGroup, FormLabel, Modal, Tabs, Tab,  } from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAnchor, faArrowRightLong, faCalendarAlt, faInfoCircle, faMapPin, faPlusCircle, faShip, faTimes, faUserGroup } from '@fortawesome/free-solid-svg-icons'
 import { ToastContainer, toast } from 'react-toastify';
+import { format } from 'date-fns'
 import 'react-toastify/dist/ReactToastify.css';
 import { Redirect, useParams } from "react-router-dom";
 import ReactLoading from 'react-loading';
@@ -52,8 +53,9 @@ const Order = () => {
     const [total_pay, setTotalPay] = useState(0)
     const [copy, setCopy] = useState(false)
 
-    const [no_va, setNoVA] = useState(0);
-    
+    const [no_va, setNoVA] = useState(0)
+    const [head, setHead] = useState("")
+
     const postJadwal = 
           {
             "id_jadwal": "",
@@ -148,6 +150,24 @@ const Order = () => {
         const echotest = axios.get(apiUrl + 'webservice/va/echo-test')
         await axios.all([jadwal, tiket, jenis, tujuan, echotest]).then(axios.spread(function(jad, tik, jen, tuj, finality) {
             setDetailJadwal(jad.data)
+            let f_label = ""
+            let t_label = ""
+            if(jad.data.jadwal_to_rute.tujuan_awals.zona.id_zona == 1){
+                f_label = "KLK"
+            }else if(jad.data.jadwal_to_rute.tujuan_awals.zona.id_zona == 2){
+                f_label = "NP"
+            }else if(jad.data.jadwal_to_rute.tujuan_awals.zona.id_zona == 4){
+                f_label = "SNR"
+            }
+
+            if(jad.data.jadwal_to_rute.tujuan_akhirs.zona.id_zona == 1){
+                t_label = "KLK"
+            }else if(jad.data.jadwal_to_rute.tujuan_akhirs.zona.id_zona == 2){
+                t_label = "NP"
+            }else if(jad.data.jadwal_to_rute.tujuan_akhirs.zona.id_zona == 4){
+                t_label = "SNR"
+            }
+            setHead(f_label + " → " + t_label + ", " + format(new Date(date_book), 'dd MMM yyyy') + " " + jad.data.jadwal)
             setTikets(tik.data)
             setJenisPenumpang(jen.data)
             setJenisTujuan(tuj.data)
@@ -537,6 +557,7 @@ const Order = () => {
     return(
             <main className="padd-components">
                 <ToastContainer />
+                {helmetAppender(head)}
                 <div className='blue-zone-bg-flat'>
                     <div className='center-container' >
                         <div className='aboutus-components-core content-core-container '>
@@ -544,7 +565,7 @@ const Order = () => {
                                 <Row>
                                     <Col xs="12" sm="8" md="8" lg="8" className='cols-destinations-space'>
                                         <div className='head-info-text title-v2 semibold-text'>
-                                            <h5 className=''>Pelayaran dari Klungkung menuju Nusa Penida</h5>
+                                            <h5 className=''>Pelayaran dari {detail_jadwal.jadwal_to_rute.tujuan_awals.zona?.lokasi} menuju {detail_jadwal.jadwal_to_rute.tujuan_akhirs.zona?.lokasi}</h5>
                                         </div>
                                         <div className='seconds-level-info-text'>
                                             <p className='text-sm' style={{color:'#8b8b8b', margin:0, display:'flex', alignItems:'baseline'}}>

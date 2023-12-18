@@ -58,7 +58,7 @@ const Booking = () => {
           }
           setFromId(from)
           setToId(to)
-          setHead(f_label + " → " + t_label + ", " + format(date_book, 'dd MMM yyyy'))
+          setHead(f_label + " → " + t_label + ", " + format(new Date(date_book), 'dd MMM yyyy'))
           fetchData(from, to, date_book, filter, id_armada_fill)
     }, []);
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect }  from 'react'
 import axios from 'axios';
-import { apiUrl } from '../../reusable/constants'
+import { apiUrl, helmetAppender } from '../../reusable/constants'
 import '../../css/error.scss';
 import { FormSelect, Form, Button, Col, Row } from 'react-bootstrap';
 import DatePicker from "react-datepicker";
@@ -188,6 +188,7 @@ const Home = () => {
 
   return (
     <main className="padd-components">
+          {helmetAppender("Bali Santi - Booking Tiket Pelayaran Bali Online")}
           <div className='blue-zone-bg-conts r-16wqof'>
             <div className='cntr-text-blue'>
                 <h4>Pesan Tiket Penyeberangan Resmi Online di sini</h4>
