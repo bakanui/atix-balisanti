@@ -406,6 +406,7 @@ const Order = () => {
                                                 amount : rest.data.amount,
                                                 totalAmount : rest.data.totalAmount,
                                                 bill_number : rest.data.billNumber,
+                                                no_invoice : pen.data[0].no_invoice
                                             }
                                             axios.post(apiUrl+'penumpang/update-invoice', data_update, header)
                                             .then(() => {
@@ -473,6 +474,7 @@ const Order = () => {
                                     let data_update = {
                                         id_invoice : invoice_id,
                                         bill_number : finality.data.data[0].recordId,
+                                        no_invoice : pen.data[0].no_invoice,
                                         no_va : billNumber.toString(),
                                         status: 0
                                     }
