@@ -339,9 +339,15 @@ const Order = () => {
                 if (res.data[last - 1].ditlala){
                     last = last - 1
                 }
-                let linkAp = 'https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api'
+                let linkAp = ''
                 if(res.data[last - 1].invoice.nama_armada === "Gangga Express"){
-                    linkAp = 'https://maiharta.ddns.net:3100/http://103.139.193.10:3001/api'
+                    linkAp = 'https://api-gangga.siwalatri.klungkungkab.go.id/api'
+                }else if(res.data[last - 1].invoice.nama_armada === "The Angkal Fast Cruise"){
+                    linkAp = 'https://api-angkal.siwalatri.klungkungkab.go.id/api'
+                }else if(res.data[last - 1].invoice.nama_armada === "Sekar Jaya"){
+                    linkAp = 'https://api-sekarjaya.siwalatri.klungkungkab.go.id/api'
+                }else{
+                    linkAp = 'https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api'
                 }
                 axios.post(linkAp + '/login', loginer)
                 .then((log => {

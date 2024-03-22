@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet"
 
-export const apiUrl = 'https://backend-balisanti.siwalatri.klungkungkab.go.id/api/'
+export const apiUrl = 'https://api.siwalatri.klungkungkab.go.id/api/'
 
 // export const apiUrl = 'http://192.168.0.199:8888/api/'
 
