@@ -335,8 +335,8 @@ const Order = () => {
             axios.post(apiUrl + 'penumpang-group', ultimate_post)
             .then((res) => {
                 let loginer = {
-                    email: "admin@gmail.com",
-                    password: "password"
+                    email: "balisanti@gmail.com",
+                    password: "Password123@"
                 }
                 let last = res.data.length
                 if (res.data[last - 1].ditlala){
@@ -350,7 +350,7 @@ const Order = () => {
                 }else if(res.data[last - 1].invoice.nama_armada === "Sekar Jaya"){
                     linkAp = 'https://api-sekarjaya.siwalatri.klungkungkab.go.id/api'
                 }else{
-                    linkAp = 'https://maiharta.ddns.net:3100/http://maiharta.ddns.net:3333/api'
+                    linkAp = 'https://api-balisanti.bakanui.online/api'
                 }
                 axios.post(linkAp + '/login', loginer)
                 .then((log => {
