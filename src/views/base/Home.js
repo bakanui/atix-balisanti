@@ -62,22 +62,13 @@ const Home = () => {
     verticalSwiping: true,
     pauseOnHover: true
   };
-
-  const getBadge = (status)=>{
-    switch (status) {
-      case 'Berlayar': return 'success'
-      case 'Sandar': return 'secondary'
-      case 'Persiapan': return 'warning'
-      default: return 'primary'
-    }
-  }
   
   const fetchDataTujuan = async (id_zona_from) => {
     const jadwal = axios.get(apiUrl + 'jadwal_keberangkatan/get-zona-akhir?zona_awal=' + id_zona_from)
     const jad = axios.get(apiUrl + 'jadwal_keberangkatan')
-    const wis = axios.get(apiUrl + 'wisata')
+    // const wis = axios.get(apiUrl + 'wisata')
     const pen = axios.get(apiUrl + 'pengumuman')
-    await axios.all([jadwal, wis, pen, jad]).then(axios.spread(function(res, wisa, peng, ja) {
+    await axios.all([jadwal, pen, jad]).then(axios.spread(function(res, peng, ja) {
       if(res.data.length !== 0){
         setIdZonaTo(res.data[0].id_zona)
         handleRemoveOp()
@@ -86,7 +77,7 @@ const Home = () => {
       }
       setDataTujuan(res.data)
       setDataJadwal(ja.data)
-      setWisata(wisa.data.data.wisatas)
+      // setWisata(wisa.data.data.wisatas)
       setPengumuman(peng.data.data.pengumumans)
     }));
   }
@@ -196,32 +187,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* <div className='slick-for-wisatas'>
-            <Slider {...settingsWisata}>
-                {
-                  wisatas.map((data,index) => {
-                    return(
-                      // <div key={index} className='card-slider'>
-                      //   <img src={data.path} alt={data.judul} title={data.judul} style={{maxHeight:'450px',borderRadius:'5px',width:'100%'}} /> 
-                      //   <div className="CCzVr">
-                      //       <span className="hbFQhX" data-qa-id="title">{data.judul}</span>
-                      //       <span className="csca" data-qa-id="title">{data.deskripsi}</span>
-                      //   </div>
-                      // </div>
-                      <div key={index} className='blue-zone-bg-conts r-16wqof' style={{ 
-                        backgroundImage: `url('${data.path}')`
-                      }}>
-                        <div className='cntr-text-blue'>
-                            <h4>Pesan Tiket Penyeberangan Resmi Online di sini</h4>
-                            <p>Reservasi tiket kapal online dengan harga spesial, jadwal lengkap, dan kerjasama dengan armada resmi di Bali.</p>
-                        </div>
-                      </div>
-                    )
-                  })
-                }
-            </Slider>
-          </div> */}
-
           <div className='r-axzv8h routes-container-md css-1dbjc4n'  style={{zIndex:4}}>
               <div className='css-1dbjc4n r-1jgb5lz r-uwe93p'>
                 <div className='routes-card-component absolute-compo' style={{backgroundColor:'#fff'}}> 
@@ -287,11 +252,6 @@ const Home = () => {
                     <div className='title-core'>
                           <span>JADWAL PELAYARAN</span>
                     </div>
-                    {/* <div className='items-text'>
-                    Sejak berdiri pada tahun 2021 di bawah naungan Dinas Perhubungan Kabupaten Klungkung, Bali Santi terus berfokus dalam menjalankan platform daring yang menyediakan layanan pemesanan tiket penyebrangan dengan fokus perjalanan domestik di daerah Klungkung. <br/> <br/>
-                    Sebagai pihak ketiga, kami telah bekerja sama dengan berbagai macam armada kapal di daerah Klungkung dengan tujuan untuk memenuhi kebutuhan Anda saat melakukan perjalanan ke tempat tujuan! <br/> <br/>
-                    Kami juga menyediakan fitur pembayaran yang fleksibel dengan kurs lokal, bahasa lokal, fitur atur pemesanan hingga cara booking yang mudah untuk semua pelanggan kami, serta tiket yang sudah Anda pesan dapat langsung dikirimkan melalui e-mail.
-                    </div> */}
                     <ul className="content scroll" style={{overflow:'hidden'}}>
                       <Slider {...settings}>
                         {
@@ -352,7 +312,7 @@ const Home = () => {
                 </div>
           </div>
 
-          <div className='center-container' style={{marginTop:'2rem'}} id="wisata">
+          {/* <div className='center-container' style={{marginTop:'2rem'}} id="wisata">
                       <div className='aboutus-components-core content-core-container'>
                           <div className='title-core'>
                                 <span>Wisata</span>
@@ -378,7 +338,7 @@ const Home = () => {
 
                           </Row>
                     </div>    
-          </div>
+          </div> */}
 
           <div className='center-container' style={{marginTop:'2rem'}} id="partner">
               <div className='aboutus-components-core content-core-container'>
