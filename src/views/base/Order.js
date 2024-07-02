@@ -241,7 +241,7 @@ const Order = () => {
         setInputList(list);
       };
 
-      const handleRemoveOp = (index) => {
+    const handleRemoveOp = (index) => {
         const element = document.getElementById("pilihkosong"+index);
         if(element){
             element.remove();
@@ -395,7 +395,6 @@ const Order = () => {
                                 axios.post(apiUrl + 'webservice/qris/generate' ,data_generate)
                                 .then((rest) => {
                                         if(!rest.data.errorCode){
-                                            console.log(rest)
                                             localStorage.setItem('qrValue', JSON.stringify(rest.data.qrValue))
                                             localStorage.setItem('billNumber', JSON.stringify(rest.data.billNumber))
                                             localStorage.setItem('invoice_id', JSON.stringify(res.data[last - 1].invoice.id))
@@ -477,7 +476,8 @@ const Order = () => {
                                     created_at: res.data[last - 1].invoice.created_at,
                                     length: inputList.length,
                                     id_tujuan: kepentinganPenumpangText(res.data[0].penumpang.id_tujuan),
-                                    updated_at: res.data[0].penumpang.updated_at
+                                    updated_at: res.data[0].penumpang.updated_at,
+                                    invoice_id : invoice_id,
                                 }
                                 axios.post(apiUrl+'webservice/va/tagihan-insert',insert)
                                 .then((finality) => {
