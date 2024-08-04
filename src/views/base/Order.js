@@ -481,19 +481,19 @@ const Order = () => {
                                 }
                                 axios.post(apiUrl+'webservice/va/tagihan-insert',insert)
                                 .then((finality) => {
-                                    console.log(finality)
+                                    // console.log(finality.status)
                                     let data_update = {
                                         id_invoice : invoice_id,
-                                        bill_number : finality.data.data[0].recordId,
+                                        bill_number : finality.data[0].recordId,
                                         no_invoice : pen.data[0].no_invoice,
                                         no_va : billNumber.toString(),
                                         status: 0
                                     }
-                                    if(finality.data.status === true){
+                                    if(finality.status === 200){
                                         axios.post(apiUrl+'penumpang/update-invoice', data_update , header)
                                         .then(() => {
                                             setInvoiceId(invoice_id)
-                                            setNoVA(finality.data.data[0]["No Tagihan"])
+                                            setNoVA(finality.data[0]["No Tagihan"])
                                             setModalLoading(false)
                                             setModalInfo(true)
                                         }).catch(() => {
