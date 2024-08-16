@@ -39,16 +39,16 @@ const Footer = () => {
                                         <img src={logoWhite} className="footer-logo-white"/>
                                 </div>
                         </div>
-                        {/* <div className="c-footer__top w-full xl:w-9/12 flex flex-wrap">
+                        <div className="c-footer__top w-full xl:w-9/12 flex flex-wrap">
                                 <div className="c-footer__company w-1/2 md:w-1/4">
                                         <p className="c-footer__title  md:mb-8 lg:mb-6">Kontak Kami</p>
                                         <ul className="space-y-4 md:space-y-6 lg:space-y-4">
-                                            <li className="gtm-footer-email gtm-footer"><a className="c-footer__link"  href="mailto:cs@bago.co.id" target="_blank"  ><EnvelopeFill/><span> cs@bago.co.id</span></a></li>
-                                            <li className="gtm-footer-phone gtm-footer"><a className="c-footer__link"  href={"http://wa.me/"+datas.customer} target="_blank"><Whatsapp /><span> +{datas.customer}</span></a></li>
-                                            <li className="gtm-footer-address gtm-footer"><a className="c-footer__link" href="https://goo.gl/maps/eAoH9vf5Pmeyfojn8" target="_blank" ><GeoAltFill /><span> Jl. Raya Buduk, No. 9x, Mengwi,<br/> Badung, Bali</span></a></li>
+                                            <li className="gtm-footer-email gtm-footer"><a className="c-footer__link"  href="mailto:balisanti.siwalatri@gmail.com" target="_blank"  ><span> balisanti.siwalatri@gmail.com</span></a></li>
+                                            {/* <li className="gtm-footer-phone gtm-footer"><a className="c-footer__link"  href={"http://wa.me/"} target="_blank"><Whatsapp /><span> +{datas.customer}</span></a></li>
+                                            <li className="gtm-footer-address gtm-footer"><a className="c-footer__link" href="https://goo.gl/maps/eAoH9vf5Pmeyfojn8" target="_blank" ><span> Jl. Raya Buduk, No. 9x, Mengwi,<br/> Badung, Bali</span></a></li> */}
                                         </ul>
                                 </div>
-                                <div className="c-footer__company w-1/2 md:w-1/4">
+                                {/* <div className="c-footer__company w-1/2 md:w-1/4">
                                         <p className="c-footer__title  md:mb-8 lg:mb-6">Tentang Kami</p>
                                         <ul className="space-y-4 md:space-y-6 lg:space-y-4">
                                             <li className="gtm-footer-email"><a href="/profile-company" className="c-footer__link">Yuk Kenali Kami</a></li>
@@ -68,8 +68,8 @@ const Footer = () => {
                                             <li className="gtm-footer-email gtm-footer"><a href="https://play.google.com/store/apps/details?id=com.bagocustomer" target="_blank"  className="c-footer__link"><FontAwesomeIcon icon={faGooglePlay} />  Google Play</a></li>
                                             <li className="gtm-footer-phone gtm-footer"><a href="https://apps.apple.com/id/app/bago/id1598782885" target="_blank"  className="c-footer__link"><FontAwesomeIcon icon={faApple} /> Apps Store</a> </li>
                                         </ul>
-                                </div>
-                        </div> */}
+                                </div> */}
+                        </div>
                         {/* <hr className="xl" />
                         <div className="row">
                             <div className="c-footer__info w-full  col-xs-6 col-sm-6 col-md-6 col-lg-6">
