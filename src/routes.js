@@ -4,12 +4,13 @@ const Booking = React.lazy(() => import("./views/base/Booking"));
 const Order = React.lazy(() => import("./views/base/Order"));
 const Confirmation = React.lazy(() => import("./views/base/Confirmation"));
 const Transaction = React.lazy(() => import("./views/base/Transaction"));
-
+const ContactUs = React.lazy(() => import("./views/base/ContactUs"));
 
 
 const routes = [
     { path: "/", exact: true, name: "Home" },
     { path: "/home", exact: true, name: "Home-container", component: HomeContainer },
+    { path: "/contact-us", exact: true, name: "Contact Us", component: ContactUs },
     { path: "/booking/:id_from/:id_to/:date_book", exact: true, name: "Booking", component: Booking },
     { path: "/order/:id_jadwal/:total_kap/:date_book", exact: true, name: "Order", component: Order },
     { path: "/confirmation-payments/:invoice_id/:payment_method", exact: true, name: "Confirmation", component: Confirmation },
