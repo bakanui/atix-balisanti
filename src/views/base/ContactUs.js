@@ -1,25 +1,14 @@
 import React, { useState, useEffect }  from 'react'
 import axios from 'axios';
 import { apiUrl, helmetAppender } from '../../reusable/constants'
-import { Button, Modal} from 'react-bootstrap';
-import "react-datepicker/dist/react-datepicker.css";
+import "../../assets/css/style-new.css";
 import "../../assets/css/style.css";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faAnchor, faRefresh } from '@fortawesome/free-solid-svg-icons'
-import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Link, useParams } from "react-router-dom";
 import ReactLoading from 'react-loading';
 import _ from "lodash";
-import QRCode from "react-qr-code";
-import logoQris from './../../assets/iconQris.png';
-import bpdFull from './../../assets/bpdbalifull.png';
-import logoGpn from './../../assets/gpn-logo.png';
-import topleft from './../../assets/topleftqris.png';
-import btmright from './../../assets/btmrightqris.png';
-import logoBPD from './../../assets/bank-bpd-bali-logo-687C6FCAC4-seeklogo.com.png';
-import {useHistory} from 'react-router-dom';
-import { sha256 } from 'js-sha256';
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMapMarker, faPhone, faPaperPlane, faGlobe } from '@fortawesome/free-solid-svg-icons';
 
 const ContactUs = () => {
     // const { invoice_id,payment_method } = useParams();
@@ -110,52 +99,105 @@ const ContactUs = () => {
             {helmetAppender("Kontak Kami")}
             <div className='center-container' style={{margin:'2rem 0'}}>
                 <div className='aboutus-components-core content-core-container'>
-                    <div className='title-core'>
+                    {/* <div className='title-core'>
                         <span>Bantuan</span>
-                    </div>
-                    <div className='flex-all-center'>
-                        <div className='card core-card-payment'>
-                            <div className='innner-content-cpmt'>
-                                    <div className='lvl-frst-detail-txt'>
-                                    <form method="POST" id="contactForm" name="contactForm">
-										<div class="row">
-											<div class="col-md-6">
-												<div class="form-group">
-													<input type="text" class="form-control" name="name" id="name" placeholder="Name" />
-												</div>
-											</div>
-											<div class="col-md-6"> 
-												<div class="form-group">
-													<input type="email" class="form-control" name="email" id="email" placeholder="Email" />
-												</div>
-											</div>
-											<div class="col-md-12">
-												<div class="form-group">
-													<input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" />
-												</div>
-											</div>
-											<div class="col-md-12">
-												<div class="form-group">
-													<textarea name="message" class="form-control" id="message" cols="30" rows="7" placeholder="Message"></textarea>
-												</div>
-											</div>
-											<div class="col-md-12">
-												<div class="form-group">
-													<input type="submit" value="Send Message" class="btn btn-primary" />
-													<div class="submitting"></div>
-												</div>
-											</div>
-										</div>
-									</form>
+                    </div> */}
+                    {/* <section className="ftco-section"> */}
+                        <Container>
+                            <Row className="justify-content-center">
+                            <Col lg={10} md={12}>
+                                <div className="wrapper">
+                                <Row noGutters>
+                                    <Col md={7} className="d-flex align-items-stretch">
+                                    <div className="contact-wrap w-100 p-md-5 p-4">
+                                        <h3 className="mb-4">Butuh bantuan? Hubungi Kami!</h3>
+                                        <div id="form-message-warning" className="mb-4"></div>
+                                        <div id="form-message-success" className="mb-4">
+                                        Keluhan anda sudah diterima, terima kasih!
+                                        </div>
+                                        <Form method="POST" id="contactForm" name="contactForm">
+                                        <Row>
+                                            <Col md={6}>
+                                            <Form.Group>
+                                                <Form.Control type="text" name="name" id="name" placeholder="Nama" />
+                                            </Form.Group>
+                                            </Col>
+                                            <Col md={6}>
+                                            <Form.Group>
+                                                <Form.Control type="email" name="email" id="email" placeholder="Email" />
+                                            </Form.Group>
+                                            </Col>
+                                            <Col md={12}>
+                                            <Form.Select aria-label="Kendala">
+                                                <option>Jenis Kendala</option>
+                                                <option value="1">Refund Pembelian Tiket</option>
+                                                <option value="2">Reschedule Tiket</option>
+                                                <option value="3">Masalah Transaksi Pembayaran Tiket</option>
+                                            </Form.Select>
+                                            </Col>
+                                            <Col md={12}>
+                                            <Form.Group>
+                                                <Form.Control type="text" name="subject" id="subject" placeholder="Subjek" />
+                                            </Form.Group>
+                                            </Col>
+                                            <Col md={12}>
+                                            <Form.Group>
+                                                <Form.Control as="textarea" name="message" id="message" rows={7} placeholder="Pesan" />
+                                            </Form.Group>
+                                            </Col>
+                                            <Col md={12}>
+                                            <Form.Group>
+                                                <Button type="submit" className="btn btn-primary">Kirim Keluhan</Button>
+                                                <div className="submitting"></div>
+                                            </Form.Group>
+                                            </Col>
+                                        </Row>
+                                        </Form>
                                     </div>
-                                    {/* <div className='button-components' style={{textAlign:'center'}}>
-                                        <Button size='sm' style={{margin:'10px 15px', maxWidth:'150px', padding:'.375rem .75rem', fontFamily:'MontSemiBold'}} className='button-book'>
-                                        <FontAwesomeIcon icon={faRefresh} color="#fff"  style={{margin:'0 5px'}}/>Refresh
-                                        </Button>
-                                    </div> */}
-                            </div>
-                        </div>
-                    </div>
+                                    </Col>
+                                    <Col md={5} className="d-flex align-items-stretch">
+                                    <div className="info-wrap bg-primary w-100 p-lg-5 p-4">
+                                        <h3 className="mb-4 mt-md-4">Kontak kami</h3>
+                                        <div className="dbox w-100 d-flex align-items-start">
+                                        <div className="icon d-flex align-items-center justify-content-center">
+                                            <FontAwesomeIcon icon={faMapMarker} />
+                                        </div>
+                                        <div className="text pl-3">
+                                            <p><span>Alamat:</span> <br />JL. Raya Tojan, Jl. Raya Watu Klotok Klungkung, Tojan, Kec. Klungkung, Kabupaten Klungkung, Bali 80716</p>
+                                        </div>
+                                        </div>
+                                        {/* <div className="dbox w-100 d-flex align-items-center">
+                                        <div className="icon d-flex align-items-center justify-content-center">
+                                            <FontAwesomeIcon icon={faPhone} />
+                                        </div>
+                                        <div className="text pl-3">
+                                            <p><span>Phone:</span> <a href="tel://1234567920">+ 1235 2355 98</a></p>
+                                        </div>
+                                        </div> */}
+                                        <div className="dbox w-100 d-flex align-items-center">
+                                        <div className="icon d-flex align-items-center justify-content-center">
+                                            <FontAwesomeIcon icon={faPaperPlane} />
+                                        </div>
+                                        <div className="text pl-3">
+                                            <p><span>Email:</span> <a href="mailto:balisanti.siwalatri@gmail.com">balisanti.siwalatri@gmail.com</a></p>
+                                        </div>
+                                        </div>
+                                        <div className="dbox w-100 d-flex align-items-center">
+                                        <div className="icon d-flex align-items-center justify-content-center">
+                                            <FontAwesomeIcon icon={faGlobe} />
+                                        </div>
+                                        <div className="text pl-3">
+                                            <p><span>Website:</span> <a href="https://dishub.klungkungkab.go.id/">dishub.klungkungkab.go.id</a></p>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    </Col>
+                                </Row>
+                                </div>
+                            </Col>
+                            </Row>
+                        </Container>
+                    {/* </section> */}
                 </div>    
             </div>
         </main>

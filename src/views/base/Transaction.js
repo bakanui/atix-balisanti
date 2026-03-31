@@ -35,13 +35,6 @@ const Transaction = () => {
 
     useEffect(() => {
         fetchFirst()
-        // if(detail_invoice.status === 0){
-        //     let interval = setInterval(() => {
-        //         fetchAuto()
-        //     }, 60000);
-        //     return () => clearInterval(interval);
-        // }
-        //eslint-disable-next-line
     }, [])
 
     const fetchFirst = async () => {
@@ -62,19 +55,20 @@ const Transaction = () => {
                 }
                 axios.post(apiUrl+'webservice/qris/get-transaction', dataQr)
                 .then((res) => {
-                    console.log(res.data)
                     if(res.data.message !== undefined){
                         setDataDetailPayment(res.data)
                         setStatus(res.data.data.status)
                     }else{
-                        if(jad.data.invoice.status !== 1){
+                        if(jad.data.invoice.status === 0){
                             setDataDetailPayment(res.data)
-                            if(res.data.data.status == 'Sudah Terbayar' && jad.data.invoice.status === 0){
+                            if(res.data.status === 'Sudah Terbayar' && jad.data.invoice.status === 0){
                                 let data = {
                                     id_invoice: invoice_id,
-                                    status: 1
+                                    status: 1,
+                                    referenceNumber: res.data.referenceNumber,
+                                    trxId: res.data.trxId
                                 }
-                                axios.post(apiUrl + 'penumpang/update-status-invoice', data)
+                                axios.post(apiUrl + 'penumpang/update-invoice', data)
                                 .then(() => {
                                     setModalLoading(false)  
                                 })
@@ -127,14 +121,18 @@ const Transaction = () => {
             await axios.post(apiUrl+'webservice/qris/get-transaction', dataQr)
             .then((res) => {
                 console.log(res.data)
+                console.log(detail_invoice)
                 setDataDetailPayment(res.data)
                 setModalLoading(false)
-                if(res.data.data.status == 'Sudah Terbayar' && detail_invoice.status === 0){
+                if(res.data.status === 'Sudah Terbayar'){
+                    console.log(detail_invoice)
                     let data = {
                         id_invoice: invoice_id,
-                        status: 1
+                        status: 1,
+                        referenceNumber: res.data.referenceNumber,
+                        trxId: res.data.trxId
                     }
-                    axios.post(apiUrl + 'penumpang/update-status-invoice', data)
+                    axios.post(apiUrl + 'penumpang/update-invoice', data)
                     .then((res) => {
                         console.log('sukses update')
                     })
@@ -155,7 +153,7 @@ const Transaction = () => {
                             id_invoice: invoice_id,
                             status: 1
                         }
-                        axios.post(apiUrl + 'penumpang/update-status-invoice', data)
+                        axios.post(apiUrl + 'penumpang/update-invoice', data)
                         .then(() => {
                             setModalLoading(false)  
                         })
@@ -186,7 +184,6 @@ const Transaction = () => {
 
 
     function getCard(datas){
-        console.log(datas.message)
         if(datas.status == 'Belum Terbayar' || datas.sts_bayar == '0'){
             return(
                 <div className='card-inner-status'>
@@ -270,7 +267,6 @@ const Transaction = () => {
     }
 
     function get404(datas){
-        console.log(datas)
         if(datas === undefined){
             return(
                 <div className='card-inner-status'>

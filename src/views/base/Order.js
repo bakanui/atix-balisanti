@@ -198,7 +198,7 @@ const Order = () => {
   
     const handleAddFields = () => {
         const values = [...inputList];
-        values.push({nama:'', jenis_kelamin:0, tiket_data:[], no_identitas:0, harga_tiket:0, catatan:'', no_telepon:0})
+        values.push({nama:'', jenis_kelamin:0, tiket_data:[], no_identitas:0, harga_tiket:0, free_pass:0, catatan:'', alamat:'-', kewarnegaraan:'ID', no_telepon:0})
         setInputList(values);
       };
   
@@ -1111,7 +1111,7 @@ const Order = () => {
                                             </label>}
 
                                             <label className="plan complete-plan" htmlFor="qris">
-                                                <input type="radio" id="qris" onChange={e => {setPayment(e.target.value)}} value={2} name="payment" />
+                                                <input type="radio" id="qris" onChange={e => {setPayment(e.target.value)}} value={2} name="payment"/>
                                                 <div className="plan-content">
                                                     <img loading="lazy" src={logoQris} alt="QRIS" />
                                                     <div className="plan-details">
