@@ -28,6 +28,7 @@ const Transaction = () => {
     const [modal_loading, setModalLoading] = useState(false) 
     const [modalInfo, setModalInfo] = useState(false) 
     const [modalInfo2, setModalInfo2] = useState(false) 
+    const [activePassengerIndex, setActivePassengerIndex] = useState(0)
     const [copy, setCopy] = useState(false)
     const [no_va, setNoVa] = useState(0);
     const [total, setTotal] = useState("0.00");
@@ -36,6 +37,12 @@ const Transaction = () => {
     useEffect(() => {
         fetchFirst()
     }, [])
+
+    useEffect(() => {
+        if(modalInfo){
+            setActivePassengerIndex(0)
+        }
+    }, [modalInfo])
 
     const fetchFirst = async () => {
         setModalLoading(true)
@@ -291,6 +298,42 @@ const Transaction = () => {
             )
         }
     }
+
+    const qrBaseUrls = {
+        '62396bbb2bac8': 'https://api-angkal.siwalatri.klungkungkab.go.id/storage/img/qrcodes/',
+        '60dff1192581b': 'https://api-gangga.siwalatri.klungkungkab.go.id/storage/img/qrcodes/',
+        '6108da9e65c2c': 'https://api-sekarjaya.siwalatri.klungkungkab.go.id/storage/img/qrcodes/',
+    }
+
+    const qrBaseUrl = qrBaseUrls[detail_invoice?.id_armada] || ''
+    const noInvoiceDigits = detail_invoice?.no_invoice ? detail_invoice.no_invoice.replace(/\D/g, '') : ''
+    const passengerList = detail_penumpang.length > 0 ? detail_penumpang : [{nama_penumpang: ''}]
+    const safePassengerIndex = Math.min(activePassengerIndex, passengerList.length - 1)
+    const activePassenger = passengerList[safePassengerIndex] || {nama_penumpang: ''}
+
+    const getQrImageUrl = (passengerIndex) => {
+        if(!qrBaseUrl || !noInvoiceDigits){
+            return ''
+        }
+        return `${qrBaseUrl}${noInvoiceDigits}${passengerIndex + 1}.png`
+    }
+
+    const ticketContentPadding = '16px 14px 22px'
+    const qrBoxSize = 'min(190px, 62vw)'
+    const infoLabelCellStyle = {
+        paddingBottom: '6px',
+        width: '38%',
+        whiteSpace: 'normal',
+        verticalAlign: 'top',
+        lineHeight: '1.3'
+    }
+    const infoValueCellStyle = {
+        paddingBottom: '6px',
+        paddingLeft: '8px',
+        verticalAlign: 'top',
+        wordBreak: 'break-word',
+        lineHeight: '1.3'
+    }
     
     return(
           <main className="padd-components">
@@ -301,11 +344,13 @@ const Transaction = () => {
                         <div className="bg-status-tickets-print">
                             {detail_payment ? getCard(detail_payment) : get404(detail_payment)}
                         </div>
-                        <div className='button-components' style={{textAlign:'center'}}>
-                            <Button size='sm' onClick={() => {fetchManual()}} style={{margin:'10px 15px', maxWidth:'150px', padding:'.375rem .75rem', fontFamily:'MontSemiBold'}} className='button-book'>
-                            <FontAwesomeIcon icon={faRefresh} color="#fff"  style={{margin:'0 5px'}}/>Refresh
-                            </Button>
-                        </div>
+                        {detail_invoice?.status !== 1 && detail_invoice?.status !== '1' && (
+                            <div className='button-components' style={{textAlign:'center'}}>
+                                <Button size='sm' onClick={() => {fetchManual()}} style={{margin:'10px 15px', maxWidth:'150px', padding:'.375rem .75rem', fontFamily:'MontSemiBold'}} className='button-book'>
+                                <FontAwesomeIcon icon={faRefresh} color="#fff"  style={{margin:'0 5px'}}/>Refresh
+                                </Button>
+                            </div>
+                        )}
                     </div>
                     
            </div>
@@ -335,59 +380,77 @@ const Transaction = () => {
                     centered
                     className='modal-tiket-book'
                     >
-                    <Modal.Body>
-                                <h4 className='titling' style={{textAlign:'center', padding:'1rem 0', color:'white'}}>Tiket Anda</h4>
-                                <div className='flex-all-center' style={{flexDirection:'column'}}>
-                                    <div className='card core-card-payment'>
-                                        <div className='innner-content-cpmt'>
-                                                <div>
-                                                        <ul style={{paddingLeft:'0'}}>
-                                                            <li className='row'><span className='col-sm-4'><b>Email</b></span><span className='col-sm-8'>: {detail_invoice?.email ? detail_invoice.email : ''}</span></li>
-                                                            <li className='row'><span className='col-sm-4'><b>Boat</b></span><span className='col-sm-8'>: {detail_keberangkatan?.nama_kapal ? detail_keberangkatan.nama_kapal : ''}</span></li>
-                                                            <li className='row'><span className='col-sm-4'><b>Dari</b></span><span className='col-sm-8'>: {detail_keberangkatan?.dermaga_awal ? detail_keberangkatan.dermaga_awal : ''}</span></li>
-                                                            <li className='row'><span className='col-sm-4'><b>Tujuan</b></span><span className='col-sm-8'>: {detail_keberangkatan?.dermaga_akhir ? detail_keberangkatan.dermaga_akhir : ''}</span></li>
-                                                            <li className='row'><span className='col-sm-4'><b>Date</b></span><span className='col-sm-8'>: {detail_keberangkatan?.tanggal ? detail_keberangkatan.tanggal : ''}</span></li>
-                                                            <li className='row'><span className='col-sm-4'><b>Jam</b></span><span className='col-sm-8'>: {detail_keberangkatan?.jadwal ? detail_keberangkatan.jadwal : ''}</span></li>
-                                                            <li className='row'><span className='col-sm-4'><b>Jumlah Tiket</b></span><span className='col-sm-8'>: {detail_keberangkatan?.jumlah ? detail_keberangkatan.jumlah : '0'}</span></li>
-                                                        </ul>
-                                                </div>
-                                                <div className='lvl-frst-comp' style={{padding:'10px 5px'}}>
-                                                    <table className="table table-bordered">
-                                                        <thead>
-                                                            <tr>
-                                                                <th scope="col" style={{width:'1%'}}>No</th>
-                                                                <th scope="col">Nama</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {detail_penumpang.map((data, index) => {
-                                                                return(
-                                                                    <tr key={index}>
-                                                                        <td>{index+1}</td>
-                                                                        <td>{data.nama_penumpang}</td>
-                                                                    </tr>
-                                                                )
-                                                            })}
-                                                           
-                                                        </tbody>
-                                                    </table>
-                                                    {/* { qr_bpd ? <QRCode value={qr_bpd} /> : <></>} */}
-                                                     {/* <QRCode value="00020101021226690017ID.CO.BPDBALI.WWW011893600129000000014402 15ID10220000012790303UMI51450015ID.OR.GPNQR.WWW0215ID12321212 345670303UMI52048931530336054061000055802ID5908DEV ATIX6008DENPASAR61058011162320111001112234420703A010806O151276 3049467" /> */}
-                                                </div>
-                                                <div className='lvl-frst-detail-txt'>
-                                                    <hr></hr>
-                                                    <div className=' center-text'>
-                                                        <p className='nomargin color-text-semdark'>Nomor Tiket</p>
-                                                        <p className='color-text-accent bold-text fz-18'>#{invoice_id}</p>
-                                                    </div>
-                                                    <div className=' center-text'>
-                                                        <p className='nomargin color-text-semdark'>Total Pembayaran</p>
-                                                        <p className='color-text-accent bold-text fz-18'>Rp {detail_invoice?.grandtotal ? <CurrencyFormat value={total} displayType={'text'} thousandSeparator={true} /> : 0}</p>
-                                                    </div>
-                                                </div>
-                                        </div>
-                                    </div>
+                    <Modal.Body style={{padding: 0, backgroundColor: '#fff', borderRadius: '8px', overflow: 'hidden'}}>
+                        {/* Static ticket header image */}
+                        <img src={require('../../assets/tiket-header.028eac63.png')} alt="ticket-header" style={{width: '100%', display: 'block', margin: '0 auto'}} />
+
+                        <div style={{padding: ticketContentPadding}}>
+                            {/* Passenger switcher */}
+                            {passengerList.length > 1 && (
+                                <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '14px', gap: '8px'}}>
+                                    {passengerList.map((penumpang, index) => (
+                                        <Button
+                                            key={index}
+                                            variant={safePassengerIndex === index ? 'secondary' : 'outline-secondary'}
+                                            size="sm"
+                                            onClick={() => setActivePassengerIndex(index)}
+                                            style={{flex: '1 1 140px', maxWidth: '100%', minWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}
+                                        >
+                                            {penumpang?.nama_penumpang ? penumpang.nama_penumpang : `P${index + 1}`}
+                                        </Button>
+                                    ))}
                                 </div>
+                            )}
+
+                            {/* QR Code */}
+                            <div style={{display: 'flex', justifyContent: 'center', margin: '16px 0 20px 0'}}>
+                                <div style={{border: '1px solid #ccc', width: qrBoxSize, height: qrBoxSize, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fafafa'}}>
+                                    <img
+                                        src={getQrImageUrl(safePassengerIndex)}
+                                        alt={`qrcode-${safePassengerIndex + 1}`}
+                                        style={{width: '100%', height: '100%', objectFit: 'contain'}}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Booking ID */}
+                            <div style={{textAlign: 'center', marginBottom: '8px'}}>
+                                <p style={{fontWeight: 'bold', margin: 0, fontSize: '15px', color: '#000'}}>Booking ID</p>
+                                <p style={{color: '#8B1A1A', fontWeight: 'bold', margin: 0, fontSize: '15px'}}>{detail_invoice?.no_invoice ? detail_invoice.no_invoice : ''}{safePassengerIndex + 1}</p>
+                            </div>
+
+                            {/* Booking Date */}
+                            <div style={{textAlign: 'center', marginBottom: '16px'}}>
+                                <p style={{fontWeight: 'bold', margin: 0, fontSize: '15px', color: '#000'}}>Booking Date</p>
+                                <p style={{margin: 0, fontSize: '14px', color: '#3b3b3b'}}>{detail_keberangkatan?.tanggal ? detail_keberangkatan.tanggal : ''}</p>
+                            </div>
+
+                            {/* Detail rows */}
+                            <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px', tableLayout: 'fixed'}}>
+                                <tbody>
+                                    <tr>
+                                        <td style={infoLabelCellStyle}>Agent Name</td>
+                                        <td style={infoValueCellStyle}>: {detail_invoice?.armada ? detail_invoice.armada.nama_armada : ''}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={infoLabelCellStyle}>Passenger Name</td>
+                                        <td style={infoValueCellStyle}>: {activePassenger?.nama_penumpang ? activePassenger.nama_penumpang : `P${safePassengerIndex + 1}`}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={infoLabelCellStyle}>From</td>
+                                        <td style={infoValueCellStyle}>: {detail_keberangkatan?.dermaga_awal ? detail_keberangkatan.dermaga_awal : ''}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={infoLabelCellStyle}>To</td>
+                                        <td style={infoValueCellStyle}>: {detail_keberangkatan?.dermaga_akhir ? detail_keberangkatan.dermaga_akhir : ''}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={infoLabelCellStyle}>Date</td>
+                                        <td style={infoValueCellStyle}>: {detail_keberangkatan?.tanggal ? detail_keberangkatan.tanggal : ''}{detail_keberangkatan?.jadwal ? ' ' + detail_keberangkatan.jadwal : ''}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </Modal.Body>
 
                 </Modal>
